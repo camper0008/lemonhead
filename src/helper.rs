@@ -36,7 +36,7 @@ pub fn draw_item(
     Ok(())
 }
 
-pub fn closest_item_with_distance<T>(items: Vec<(f64, T)>, position: f64) -> Option<(f64, T)> {
+pub fn closest_item_within_distance<T>(items: Vec<(f64, T)>, position: f64) -> Option<T> {
     if items.len() == 0 {
         return None;
     }
@@ -44,7 +44,9 @@ pub fn closest_item_with_distance<T>(items: Vec<(f64, T)>, position: f64) -> Opt
     items
         .into_iter()
         .map(|(dist, item)| ((dist - position).abs(), item))
+        .filter(|(dist, _)| dist < &((PIXEL_PER_DOT / 2) as f64))
         .min_by(|x, y| (x.0).total_cmp(&y.0))
+        .map(|(_dist, item)| item)
 }
 
 pub fn draw_interact_prompt(canvas: &mut WindowCanvas, animation_timer: f64) -> Result<(), String> {

@@ -5,7 +5,7 @@ use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{closest_item_with_distance, draw_interact_prompt, draw_item};
+use crate::helper::{closest_item_within_distance, draw_item};
 use crate::state::State;
 use crate::{rect, scene::Scene};
 
@@ -161,45 +161,28 @@ impl Scene for OutsideHouse {
         Ok(())
     }
 
-    fn draw_interact_popup(
-        &self,
-        state: &crate::state::State,
-        canvas: &mut sdl2::render::WindowCanvas,
-        position: f64,
-        animation_timer: f64,
-    ) -> Result<(), String> {
+    fn should_draw_interact_popup(&self, state: &crate::state::State, position: f64) -> bool {
         let items = self.prepare_items(state);
-        let closest = closest_item_with_distance(items, position);
-        if let Some((difference, _)) = closest {
-            if difference <= PIXEL_PER_DOT.into() {
-                draw_interact_prompt(canvas, animation_timer)?;
-            }
-        }
-
-        Ok(())
+        let closest = closest_item_within_distance(items, position);
+        closest.is_some()
     }
 
-    fn interact(&self, state: &mut crate::state::State, position: f64) -> Result<(), String> {
+    fn interact(&self, state: &mut crate::state::State, position: f64) {
         let items = self.prepare_items(state);
 
-        let closest = closest_item_with_distance(items, position);
-        if let Some((difference, item)) = closest {
-            if difference <= PIXEL_PER_DOT.into() {
-                state.send_audio("assets/click.ogg");
-                match item {
-                    Interactables::Key => {
-                        state.front_door_key_picked_up = true;
-                    }
-                    Interactables::Door => {
-                        if !state.front_door_opened {
-                            state.front_door_opened = true;
-                        } else {
-                            state.scene_changed = Some((1.0, Scenes::InsideHouse));
-                        }
+        let closest = closest_item_within_distance(items, position);
+        if let Some(item) = closest {
+            state.send_audio("assets/click.ogg");
+            match item {
+                Interactables::Key => state.front_door_key_picked_up = true,
+                Interactables::Door => {
+                    if !state.front_door_opened {
+                        state.front_door_opened = true;
+                    } else {
+                        state.scene_changed = Some((1.0, Scenes::InsideHouse));
                     }
                 }
             }
         }
-        Ok(())
     }
 }

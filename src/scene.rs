@@ -8,12 +8,6 @@ pub trait Scene {
         canvas: &mut WindowCanvas,
         animation_timer: f64,
     ) -> Result<(), String>;
-    fn draw_interact_popup(
-        &self,
-        state: &State,
-        canvas: &mut WindowCanvas,
-        position: f64,
-        animation_timer: f64,
-    ) -> Result<(), String>;
-    fn interact(&self, state: &mut State, position: f64) -> Result<(), String>;
+    fn should_draw_interact_popup(&self, state: &State, position: f64) -> bool;
+    fn interact(&self, state: &mut State, position: f64);
 }

@@ -6,6 +6,7 @@ mod scenes;
 mod state;
 
 use actor::Actor;
+use helper::draw_interact_prompt;
 use rodio::{Decoder, OutputStream, Sink};
 use scenes::inside_house::InsideHouse;
 use std::collections::HashMap;
@@ -81,7 +82,11 @@ pub fn run() -> Result<(), String> {
         let delta_time = 1.0 / 60.0;
         canvas.clear();
         scene.draw_scenery(&state, &mut canvas, animation_timer)?;
-        scene.draw_interact_popup(&state, &mut canvas, lemonhead.x(), animation_timer)?;
+        let should_draw_interact = scene.should_draw_interact_popup(&state, lemonhead.x());
+        if should_draw_interact {
+            draw_interact_prompt(&mut canvas, animation_timer)?;
+        }
+
         lemonhead.idle();
         if *keys_down.get(&Keycode::A).unwrap_or(&false) {
             lemonhead.offset_position(PIXEL_PER_DOT as f64 * -1.5, 0.0, delta_time);
@@ -92,7 +97,7 @@ pub fn run() -> Result<(), String> {
             lemonhead.run_right();
         }
         if *keys_down.get(&Keycode::Space).unwrap_or(&false) {
-            scene.interact(&mut state, lemonhead.x())?;
+            scene.interact(&mut state, lemonhead.x());
             keys_down.insert(Keycode::Space, false);
         }
 
