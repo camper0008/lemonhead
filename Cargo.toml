@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+rodio = { version = "0.17.1", features = ["vorbis"], default-features = false }
 sdl2 = { version = "0.35.2", features = ["image"] }

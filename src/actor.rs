@@ -6,22 +6,23 @@ use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
 
 pub struct Actor {
-    position: (i32, i32),
+    position: (f64, f64),
     state: ActorState,
-    animation_cycle: u32,
     asset: &'static str,
 }
 
 impl Actor {
     pub fn new(asset: &'static str) -> Self {
         Actor {
-            position: (0, 0),
+            position: (0.0, 0.0),
             state: ActorState::Idle,
-            animation_cycle: 0,
             asset,
         }
     }
 
+    pub fn x(&self) -> f64 {
+        self.position.0
+    }
     pub fn idle(&mut self) {
         self.state = ActorState::Idle;
     }
@@ -31,15 +32,18 @@ impl Actor {
     pub fn run_right(&mut self) {
         self.state = ActorState::RunningRight;
     }
-    pub fn offset_position(&mut self, x: i32, y: i32) {
+
+    pub fn set_position(&mut self, x: f64, y: f64) {
         self.position.0 += x;
         self.position.1 += y;
     }
+    pub fn offset_position(&mut self, x: f64, y: f64, delta_time: f64) {
+        self.position.0 += x * delta_time;
+        self.position.1 += y * delta_time;
+    }
 
-    pub fn present(&mut self, canvas: &mut WindowCanvas) {
-        self.animation_cycle += 1;
-        self.animation_cycle %= 500;
-        let offset = if self.animation_cycle < 250 { 0 } else { 32 };
+    pub fn present(&mut self, canvas: &mut WindowCanvas, delta_time: f64) {
+        let offset = if delta_time % 0.5 < 0.25 { 0 } else { 32 };
         let offset = offset
             + match self.state {
                 ActorState::Idle => 0,
@@ -53,7 +57,7 @@ impl Actor {
             .copy(
                 &texture,
                 rect!(offset, 0, 32, 32),
-                rect!(self.position.0 / 4, self.position.1 / 4, 64, 64),
+                rect!(self.position.0, self.position.1, 64, 64),
             )
             .unwrap();
     }
