@@ -7,6 +7,7 @@ mod state;
 
 use actor::Actor;
 use rodio::{Decoder, OutputStream, Sink};
+use scenes::inside_house::InsideHouse;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
@@ -20,7 +21,6 @@ use scenes::outside_house::OutsideHouse;
 use sdl2::event::Event;
 use sdl2::image::InitFlag;
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
 use sdl2::video::Window;
 use sdl2::Sdl;
 use state::State;
@@ -70,14 +70,15 @@ pub fn run() -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?;
 
-    let scene = OutsideHouse {};
+    let outside_house = OutsideHouse::default();
+    let inside_house = InsideHouse::default();
+    let mut scene: &dyn Scene = &outside_house;
     let mut state = State::new(audio_sender);
     let mut lemonhead = Actor::new("assets/lemonhead.png");
     lemonhead.set_position(PIXEL_PER_DOT as f64, (PIXEL_PER_DOT * GROUND_LEVEL).into());
 
     'mainloop: loop {
         let delta_time = 1.0 / 60.0;
-        canvas.set_draw_color(Color::RGB(255, 255, 255));
         canvas.clear();
         scene.draw_scenery(&state, &mut canvas, animation_timer)?;
         scene.draw_interact_popup(&state, &mut canvas, lemonhead.x(), animation_timer)?;
@@ -95,7 +96,7 @@ pub fn run() -> Result<(), String> {
             keys_down.insert(Keycode::Space, false);
         }
 
-        lemonhead.present(&mut canvas, animation_timer);
+        lemonhead.draw(&mut canvas, animation_timer);
         canvas.present();
         for event in sdl_context.event_pump()?.poll_iter() {
             match event {
@@ -120,6 +121,21 @@ pub fn run() -> Result<(), String> {
             }
         }
 
+        match state.scene_changed {
+            None => (),
+            Some((position, ref new_scene)) => {
+                match new_scene {
+                    scenes::Scenes::InsideHouse => scene = &inside_house,
+                    scenes::Scenes::OutsideHouse => scene = &outside_house,
+                };
+                lemonhead.set_position(
+                    PIXEL_PER_DOT as f64 * position,
+                    (PIXEL_PER_DOT * GROUND_LEVEL).into(),
+                );
+                state.scene_changed = None;
+            }
+        }
+
         animation_timer += delta_time;
         animation_timer %= 1.0;
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
@@ -129,7 +145,5 @@ pub fn run() -> Result<(), String> {
 }
 
 fn main() -> Result<(), String> {
-    run()?;
-
-    Ok(())
+    run()
 }

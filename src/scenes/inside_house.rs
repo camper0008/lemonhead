@@ -11,80 +11,29 @@ use crate::{rect, scene::Scene};
 
 use super::Scenes;
 
-const HOUSE_OFFSET: i32 = 5;
-
-pub struct OutsideHouse {}
+pub struct InsideHouse {}
 
 enum Interactables {
     Door,
-    Key,
+    Weapon,
 }
 
-impl Default for OutsideHouse {
+impl Default for InsideHouse {
     fn default() -> Self {
         Self {}
     }
 }
 
-impl OutsideHouse {
-    fn draw_house(&self, canvas: &mut WindowCanvas, door_open: bool) -> Result<(), String> {
+impl InsideHouse {
+    fn draw_house(&self, canvas: &mut WindowCanvas) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
-        let door = texture_creator.load_texture(Path::new("assets/door.png"))?;
-        let ground = texture_creator.load_texture(Path::new("assets/ground.png"))?;
-
-        for x in HOUSE_OFFSET..HOUSE_OFFSET + 3 {
-            canvas.copy(
-                &ground,
-                rect!(32, 0, 32, 32),
-                rect!(
-                    x * PIXEL_PER_DOT,
-                    GROUND_LEVEL * PIXEL_PER_DOT,
-                    PIXEL_PER_DOT,
-                    PIXEL_PER_DOT
-                ),
-            )?;
-        }
+        let door_texture = texture_creator.load_texture(Path::new("assets/door.png"))?;
 
         canvas.copy(
-            &ground,
-            rect!(96, 0, 32, 32),
+            &door_texture,
+            rect!(32, 0, 32, 32),
             rect!(
-                HOUSE_OFFSET * PIXEL_PER_DOT,
-                (GROUND_LEVEL - 1) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
-
-        canvas.copy(
-            &ground,
-            rect!(32, 32, 32, 32),
-            rect!(
-                (HOUSE_OFFSET + 1) * PIXEL_PER_DOT,
-                (GROUND_LEVEL - 1) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
-
-        canvas.copy(
-            &ground,
-            rect!(96, 32, 32, 32),
-            rect!(
-                (HOUSE_OFFSET + 2) * PIXEL_PER_DOT,
-                (GROUND_LEVEL - 1) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
-
-        let door_offset = if door_open { 32 } else { 0 };
-
-        canvas.copy(
-            &door,
-            rect!(door_offset, 0, 32, 32),
-            rect!(
-                (HOUSE_OFFSET + 1) * PIXEL_PER_DOT,
+                1 * PIXEL_PER_DOT,
                 GROUND_LEVEL * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
@@ -100,12 +49,12 @@ impl OutsideHouse {
         for x in 0..10 {
             canvas.copy(
                 &ground_texture,
-                rect!(0, 0, 32, 64),
+                rect!(0, 32, 32, 32),
                 rect!(
                     x * PIXEL_PER_DOT,
-                    GROUND_LEVEL * PIXEL_PER_DOT,
+                    (GROUND_LEVEL + 1) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
-                    PIXEL_PER_DOT * 2
+                    PIXEL_PER_DOT
                 ),
             )?;
         }
@@ -130,33 +79,28 @@ impl OutsideHouse {
 
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
-        if state.front_door_key_picked_up {
-            items.push((
-                (PIXEL_PER_DOT * (HOUSE_OFFSET + 1)) as f64,
-                Interactables::Door,
-            ));
-        }
-        if !state.front_door_key_picked_up {
-            items.push(((PIXEL_PER_DOT * 3) as f64, Interactables::Key));
+        items.push(((PIXEL_PER_DOT * 1) as f64, Interactables::Door));
+        if !state.weapon_picked_up {
+            items.push(((PIXEL_PER_DOT * 9) as f64, Interactables::Weapon));
         }
 
         items
     }
 }
 
-impl Scene for OutsideHouse {
+impl Scene for InsideHouse {
     fn draw_scenery(
         &self,
         state: &crate::state::State,
         canvas: &mut sdl2::render::WindowCanvas,
         animation_timer: f64,
     ) -> Result<(), String> {
-        canvas.set_draw_color(Color::RGB(255, 255, 255));
+        canvas.set_draw_color(Color::RGB(200, 200, 200));
         canvas.clear();
-        self.draw_house(canvas, state.front_door_opened)?;
+        self.draw_house(canvas)?;
         self.draw_ground(canvas)?;
         if !state.front_door_key_picked_up {
-            draw_item(canvas, 3, "assets/key.png", animation_timer)?;
+            draw_item(canvas, 9, "assets/weapon.png", animation_timer)?;
         }
         Ok(())
     }
@@ -187,16 +131,8 @@ impl Scene for OutsideHouse {
             if difference <= PIXEL_PER_DOT.into() {
                 state.send_audio("assets/click.ogg");
                 match item {
-                    Interactables::Key => {
-                        state.front_door_key_picked_up = true;
-                    }
-                    Interactables::Door => {
-                        if !state.front_door_opened {
-                            state.front_door_opened = true;
-                        } else {
-                            state.scene_changed = Some((1.0, Scenes::InsideHouse));
-                        }
-                    }
+                    Interactables::Door => state.scene_changed = Some((5.0, Scenes::OutsideHouse)),
+                    Interactables::Weapon => {}
                 }
             }
         }

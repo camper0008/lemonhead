@@ -34,15 +34,15 @@ impl Actor {
     }
 
     pub fn set_position(&mut self, x: f64, y: f64) {
-        self.position.0 += x;
-        self.position.1 += y;
+        self.position.0 = x;
+        self.position.1 = y;
     }
     pub fn offset_position(&mut self, x: f64, y: f64, delta_time: f64) {
         self.position.0 += x * delta_time;
         self.position.1 += y * delta_time;
     }
 
-    pub fn present(&mut self, canvas: &mut WindowCanvas, delta_time: f64) {
+    pub fn draw(&mut self, canvas: &mut WindowCanvas, delta_time: f64) {
         let offset = if delta_time % 0.5 < 0.25 { 0 } else { 32 };
         let offset = offset
             + match self.state {
