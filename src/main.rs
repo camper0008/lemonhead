@@ -9,6 +9,7 @@ use actor::Actor;
 use helper::draw_interact_prompt;
 use rodio::{Decoder, OutputStream, Sink};
 use scenes::inside_house::InsideHouse;
+use sdl2::render::WindowCanvas;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
@@ -41,42 +42,54 @@ fn prepare_window(sdl_context: &Sdl) -> Result<Window, String> {
     Ok(window)
 }
 
+pub fn prepare_canvas(window: Window) -> Result<WindowCanvas, String> {
+    window
+        .into_canvas()
+        .software()
+        .build()
+        .map_err(|e| e.to_string())
+}
+
 pub fn run() -> Result<(), String> {
-    let mut keys_down: HashMap<Keycode, bool> = Default::default();
+    let mut keys_down = HashMap::new();
 
     let (audio_sender, audio_reciever): (Sender<&'static str>, Receiver<&'static str>) =
         mpsc::channel();
 
     thread::spawn(move || {
-        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-        let sink = Sink::try_new(&stream_handle).unwrap();
+        let Ok((_stream, stream_handle)) = OutputStream::try_default() else {
+            return Err("unable to open audio channel".to_owned());
+        };
+        let sink = Sink::try_new(&stream_handle).map_err(|e| e.to_string())?;
 
         loop {
             let Ok(path) = audio_reciever.recv() else {
                 break;
             };
-            let file = BufReader::new(File::open(path).unwrap());
-            let source = Decoder::new(file).unwrap();
+            let file = BufReader::new(
+                File::open(path).map_err(|_| format!("audio file at {path} not found"))?,
+            );
+            let source = Decoder::new(file).map_err(|e| e.to_string())?;
             sink.append(source);
         }
+
+        Ok(())
     });
 
     let sdl_context = sdl2::init()?;
     let window = prepare_window(&sdl_context)?;
+    let mut canvas = prepare_canvas(window)?;
     let mut animation_timer = 0.0;
-
-    let mut canvas = window
-        .into_canvas()
-        .software()
-        .build()
-        .map_err(|e| e.to_string())?;
 
     let outside_house = OutsideHouse::default();
     let inside_house = InsideHouse::default();
     let mut scene: &dyn Scene = &outside_house;
     let mut state = State::new(audio_sender);
     let mut lemonhead = Actor::new("assets/lemonhead.png");
-    lemonhead.set_position(PIXEL_PER_DOT as f64, (PIXEL_PER_DOT * GROUND_LEVEL).into());
+    lemonhead.set_position(
+        f64::from(PIXEL_PER_DOT),
+        (PIXEL_PER_DOT * GROUND_LEVEL).into(),
+    );
 
     'mainloop: loop {
         let delta_time = 1.0 / 60.0;
@@ -89,11 +102,11 @@ pub fn run() -> Result<(), String> {
 
         lemonhead.idle();
         if *keys_down.get(&Keycode::A).unwrap_or(&false) {
-            lemonhead.offset_position(PIXEL_PER_DOT as f64 * -1.5, 0.0, delta_time);
+            lemonhead.offset_position(f64::from(PIXEL_PER_DOT) * -1.5, 0.0, delta_time);
             lemonhead.run_left();
         }
         if *keys_down.get(&Keycode::D).unwrap_or(&false) {
-            lemonhead.offset_position(PIXEL_PER_DOT as f64 * 1.5, 0.0, delta_time);
+            lemonhead.offset_position(f64::from(PIXEL_PER_DOT) * 1.5, 0.0, delta_time);
             lemonhead.run_right();
         }
         if *keys_down.get(&Keycode::Space).unwrap_or(&false) {
@@ -111,13 +124,13 @@ pub fn run() -> Result<(), String> {
                     ..
                 } => break 'mainloop,
                 Event::KeyDown {
-                    keycode: Some(k @ Keycode::A | k @ Keycode::D | k @ Keycode::Space),
+                    keycode: Some(k @ (Keycode::A | Keycode::D | Keycode::Space)),
                     ..
                 } => {
                     keys_down.insert(k, true);
                 }
                 Event::KeyUp {
-                    keycode: Some(k @ Keycode::A | k @ Keycode::D | k @ Keycode::Space),
+                    keycode: Some(k @ (Keycode::A | Keycode::D | Keycode::Space)),
                     ..
                 } => {
                     keys_down.insert(k, false);
@@ -134,7 +147,7 @@ pub fn run() -> Result<(), String> {
                     scenes::Scenes::OutsideHouse => scene = &outside_house,
                 };
                 lemonhead.set_position(
-                    PIXEL_PER_DOT as f64 * position,
+                    f64::from(PIXEL_PER_DOT) * position,
                     (PIXEL_PER_DOT * GROUND_LEVEL).into(),
                 );
                 state.scene_changed = None;

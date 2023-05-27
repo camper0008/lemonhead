@@ -11,6 +11,7 @@ use crate::{rect, scene::Scene};
 
 use super::Scenes;
 
+#[derive(Default)]
 pub struct InsideHouse {}
 
 enum Interactables {
@@ -20,12 +21,6 @@ enum Interactables {
     Coin1,
     Coin2,
     Coin3,
-}
-
-impl Default for InsideHouse {
-    fn default() -> Self {
-        Self {}
-    }
 }
 
 impl InsideHouse {
@@ -53,7 +48,7 @@ impl InsideHouse {
             &door,
             rect!(32, 0, 32, 32),
             rect!(
-                1 * PIXEL_PER_DOT,
+                PIXEL_PER_DOT,
                 GROUND_LEVEL * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
@@ -115,21 +110,21 @@ impl InsideHouse {
 
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
-        items.push(((PIXEL_PER_DOT * 1) as f64, Interactables::ExitDoor));
+        items.push((f64::from(PIXEL_PER_DOT), Interactables::ExitDoor));
         if !state.coin_0 {
-            items.push(((PIXEL_PER_DOT * 3) as f64, Interactables::Coin0));
+            items.push((f64::from(PIXEL_PER_DOT * 3), Interactables::Coin0));
         }
         if !state.coin_1 {
-            items.push(((PIXEL_PER_DOT * 4) as f64, Interactables::Coin1));
+            items.push((f64::from(PIXEL_PER_DOT * 4), Interactables::Coin1));
         }
         if !state.coin_2 {
-            items.push(((PIXEL_PER_DOT * 5) as f64, Interactables::Coin2));
+            items.push((f64::from(PIXEL_PER_DOT * 5), Interactables::Coin2));
         }
         if !state.coin_3 {
-            items.push(((PIXEL_PER_DOT * 6) as f64, Interactables::Coin3));
+            items.push((f64::from(PIXEL_PER_DOT * 6), Interactables::Coin3));
         }
         if state.coin_0 && state.coin_1 && state.coin_2 && state.coin_3 {
-            items.push(((PIXEL_PER_DOT * 8) as f64, Interactables::KitchenDoor));
+            items.push((f64::from(PIXEL_PER_DOT * 8), Interactables::KitchenDoor));
         }
 
         items
@@ -181,7 +176,7 @@ impl Scene for InsideHouse {
                 Interactables::Coin2 => state.coin_2 = true,
                 Interactables::Coin3 => state.coin_3 = true,
                 Interactables::KitchenDoor => {
-                    state.scene_changed = Some((5.0, Scenes::OutsideHouse))
+                    state.scene_changed = Some((5.0, Scenes::OutsideHouse));
                 }
             }
         }

@@ -13,17 +13,12 @@ use super::Scenes;
 
 const HOUSE_OFFSET: i32 = 5;
 
+#[derive(Default)]
 pub struct OutsideHouse {}
 
 enum Interactables {
     Door,
     Key,
-}
-
-impl Default for OutsideHouse {
-    fn default() -> Self {
-        Self {}
-    }
 }
 
 impl OutsideHouse {
@@ -132,12 +127,12 @@ impl OutsideHouse {
         let mut items = Vec::new();
         if state.front_door_key_picked_up {
             items.push((
-                (PIXEL_PER_DOT * (HOUSE_OFFSET + 1)) as f64,
+                f64::from(PIXEL_PER_DOT * (HOUSE_OFFSET + 1)),
                 Interactables::Door,
             ));
         }
         if !state.front_door_key_picked_up {
-            items.push(((PIXEL_PER_DOT * 3) as f64, Interactables::Key));
+            items.push((f64::from(PIXEL_PER_DOT * 3), Interactables::Key));
         }
 
         items
@@ -176,10 +171,10 @@ impl Scene for OutsideHouse {
             match item {
                 Interactables::Key => state.front_door_key_picked_up = true,
                 Interactables::Door => {
-                    if !state.front_door_opened {
-                        state.front_door_opened = true;
-                    } else {
+                    if state.front_door_opened {
                         state.scene_changed = Some((1.0, Scenes::InsideHouse));
+                    } else {
+                        state.front_door_opened = true;
                     }
                 }
             }

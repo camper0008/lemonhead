@@ -21,7 +21,7 @@ pub fn draw_item(
     let texture_creator = canvas.texture_creator();
     let door_texture = texture_creator.load_texture(Path::new(path))?;
 
-    let offset = (animation_timer * PI * 2.0).sin() * PIXEL_PER_DOT as f64 * 0.125;
+    let offset = (animation_timer * PI * 2.0).sin() * f64::from(PIXEL_PER_DOT) * 0.125;
 
     canvas.copy(
         &door_texture,
@@ -37,14 +37,14 @@ pub fn draw_item(
 }
 
 pub fn closest_item_within_distance<T>(items: Vec<(f64, T)>, position: f64) -> Option<T> {
-    if items.len() == 0 {
+    if items.is_empty() {
         return None;
     }
 
     items
         .into_iter()
         .map(|(dist, item)| ((dist - position).abs(), item))
-        .filter(|(dist, _)| dist < &((PIXEL_PER_DOT / 2) as f64))
+        .filter(|(dist, _)| dist < &f64::from(PIXEL_PER_DOT / 2))
         .min_by(|x, y| (x.0).total_cmp(&y.0))
         .map(|(_dist, item)| item)
 }
@@ -53,7 +53,7 @@ pub fn draw_interact_prompt(canvas: &mut WindowCanvas, animation_timer: f64) -> 
     let texture_creator = canvas.texture_creator();
     let door_texture = texture_creator.load_texture(Path::new("assets/space.png"))?;
 
-    let offset = (animation_timer * PI * 2.0).sin() * PIXEL_PER_DOT as f64 * 0.05;
+    let offset = (animation_timer * PI * 2.0).sin() * f64::from(PIXEL_PER_DOT) * 0.05;
 
     canvas.copy(
         &door_texture,
