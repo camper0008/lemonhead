@@ -1,4 +1,5 @@
 mod actor;
+mod audio;
 mod globals;
 mod helper;
 mod scene;
@@ -6,15 +7,11 @@ mod scenes;
 mod state;
 
 use actor::Actor;
+use audio::audio_thread;
 use helper::draw_interact_prompt;
-use rodio::{Decoder, OutputStream, Sink};
 use scenes::inside_house::InsideHouse;
 use sdl2::render::WindowCanvas;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::BufReader;
-use std::sync::mpsc::{self, Receiver, Sender};
-use std::thread;
 use std::time::Duration;
 
 use globals::{GROUND_LEVEL, PIXEL_PER_DOT};
@@ -53,28 +50,8 @@ pub fn prepare_canvas(window: Window) -> Result<WindowCanvas, String> {
 pub fn run() -> Result<(), String> {
     let mut keys_down = HashMap::new();
 
-    let (audio_sender, audio_reciever): (Sender<&'static str>, Receiver<&'static str>) =
-        mpsc::channel();
-
-    thread::spawn(move || {
-        let Ok((_stream, stream_handle)) = OutputStream::try_default() else {
-            return Err("unable to open audio channel".to_owned());
-        };
-        let sink = Sink::try_new(&stream_handle).map_err(|e| e.to_string())?;
-
-        loop {
-            let Ok(path) = audio_reciever.recv() else {
-                break;
-            };
-            let file = BufReader::new(
-                File::open(path).map_err(|_| format!("audio file at {path} not found"))?,
-            );
-            let source = Decoder::new(file).map_err(|e| e.to_string())?;
-            sink.append(source);
-        }
-
-        Ok(())
-    });
+    let sound_effect_sender = audio_thread();
+    let music_effect_sender = audio_thread();
 
     let sdl_context = sdl2::init()?;
     let window = prepare_window(&sdl_context)?;
@@ -84,12 +61,14 @@ pub fn run() -> Result<(), String> {
     let outside_house = OutsideHouse::default();
     let inside_house = InsideHouse::default();
     let mut scene: &dyn Scene = &outside_house;
-    let mut state = State::new(audio_sender);
+    let mut state = State::new(sound_effect_sender, music_effect_sender);
     let mut lemonhead = Actor::new("assets/lemonhead.png");
     lemonhead.set_position(
         f64::from(PIXEL_PER_DOT),
         (PIXEL_PER_DOT * GROUND_LEVEL).into(),
     );
+
+    state.change_background_track("assets/lemonhead.ogg");
 
     'mainloop: loop {
         let delta_time = 1.0 / 60.0;
