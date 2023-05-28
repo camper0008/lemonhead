@@ -102,14 +102,14 @@ impl LivingRoom {
         let bubble = texture_creator.load_texture(Path::new("assets/bubble.png"))?;
         let offset = (state.confronting_animation_timer * 8.0).round() * 32.0;
 
-        let mut bad_guy = Actor::new("assets/bad-guy.png");
-        bad_guy.set_position(
+        let mut dad = Actor::new("assets/dad.png");
+        dad.set_position(
             PIXEL_PER_DOT as f64 * 14.0
                 - (state.confronting_animation_timer * 2.0 * PIXEL_PER_DOT as f64),
             (PIXEL_PER_DOT * GROUND_LEVEL).into(),
         );
-        bad_guy.run_left();
-        bad_guy.draw(canvas, animation_timer);
+        dad.run_left();
+        dad.draw(canvas, animation_timer);
         canvas.copy(
             &bubble,
             rect!(offset, 0, 32, 32),

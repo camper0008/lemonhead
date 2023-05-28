@@ -196,7 +196,7 @@ impl Scene for Kitchen {
             state.send_audio("assets/click.ogg");
             match item {
                 Interactables::ExitDoor => {
-                    if state.confronted && !state.bad_guy_dead {
+                    if state.confronted && !state.dad_dead {
                         return;
                     }
                     state.scene_changed = Some((8.0, Scenes::Entryway));

@@ -62,13 +62,13 @@ pub fn draw_interact_prompt(
 
     let offset = (animation_timer * PI * 2.0).sin() * f64::from(PIXEL_PER_DOT) * 0.05;
 
-    let x_offset = if state.bad_guy_dead && !state.child_dead {
+    let x_offset = if state.dad_dead && !state.child_dead {
         32
     } else {
         0
     };
 
-    let (x_size, x_position, y_offset) = if state.confronted && !state.bad_guy_dead {
+    let (x_size, x_position, y_offset) = if state.confronted && !state.dad_dead {
         (2, 3.5, 0)
     } else {
         (1, 4.5, 16)

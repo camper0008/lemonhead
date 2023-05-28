@@ -95,7 +95,7 @@ impl Entryway {
             ),
         )?;
 
-        let child_door_offset = if state.bad_guy_dead { 32 } else { 0 };
+        let child_door_offset = if state.dad_dead { 32 } else { 0 };
 
         canvas.copy(
             &door,
@@ -108,7 +108,7 @@ impl Entryway {
             ),
         )?;
 
-        if !state.bad_guy_dead && !state.child_dead {
+        if !state.dad_dead && !state.child_dead {
             canvas.copy(
                 &hint,
                 rect!(0, 0, 32, 32),
