@@ -84,7 +84,7 @@ impl State {
         self.music.send(AudioConfiguration::Stop).unwrap();
 
         self.music
-            .send(AudioConfiguration::Play(0.5, "assets/ascension.ogg"))
+            .send(AudioConfiguration::Play(1.0, "assets/ascension.ogg"))
             .unwrap();
     }
 }

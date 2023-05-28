@@ -2,6 +2,7 @@ mod actor;
 mod audio;
 mod globals;
 mod helper;
+mod menu;
 mod scene;
 mod scenes;
 mod state;
@@ -9,6 +10,7 @@ mod state;
 use actor::Actor;
 use audio::audio_thread;
 use helper::draw_interact_prompt;
+use menu::main_menu;
 use scenes::child_room::ChildRoom;
 use scenes::entryway::Entryway;
 use scenes::kitchen::Kitchen;
@@ -51,15 +53,11 @@ pub fn prepare_canvas(window: Window) -> Result<WindowCanvas, String> {
         .map_err(|e| e.to_string())
 }
 
-pub fn run() -> Result<(), String> {
+pub fn run(sdl_context: Sdl, mut canvas: WindowCanvas) -> Result<(), String> {
     let mut keys_down = HashMap::new();
 
     let sound_effect_sender = audio_thread();
     let music_effect_sender = audio_thread();
-
-    let sdl_context = sdl2::init()?;
-    let window = prepare_window(&sdl_context)?;
-    let mut canvas = prepare_canvas(window)?;
 
     let mut animation_timer = 0.0;
 
@@ -131,7 +129,6 @@ pub fn run() -> Result<(), String> {
                 _ => {}
             }
         }
-
         match state.scene_changed {
             None => (),
             Some((position, ref new_scene)) => {
@@ -164,5 +161,10 @@ pub fn run() -> Result<(), String> {
 }
 
 fn main() -> Result<(), String> {
-    run()
+    let sdl_context = sdl2::init()?;
+    let window = prepare_window(&sdl_context)?;
+    let mut canvas = prepare_canvas(window)?;
+
+    main_menu(&sdl_context, &mut canvas)?;
+    run(sdl_context, canvas)
 }
