@@ -54,7 +54,7 @@ impl LivingRoom {
 
         canvas.copy(
             &ground,
-            rect!(32, 64, 32, 32),
+            rect!(0, 64, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 3,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
@@ -65,7 +65,7 @@ impl LivingRoom {
 
         canvas.copy(
             &ground,
-            rect!(64, 64, 32, 32),
+            rect!(32, 64, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 4,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,

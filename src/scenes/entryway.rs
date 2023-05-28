@@ -28,7 +28,7 @@ impl Entryway {
         let texture_creator = canvas.texture_creator();
         let door = texture_creator.load_texture(Path::new("assets/door.png"))?;
         let ground = texture_creator.load_texture(Path::new("assets/ground.png"))?;
-        let hint = texture_creator.load_texture(Path::new("assets/blood.png"))?;
+        let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
 
         for x in 0..10 {
             for y in 0..=GROUND_LEVEL {
@@ -56,9 +56,10 @@ impl Entryway {
             ),
         )?;
 
+        let face_offset = if state.child_dead { 96 } else { 0 };
         canvas.copy(
             &ground,
-            rect!(32, 64, 32, 32),
+            rect!(face_offset, 64, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 7,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
@@ -69,7 +70,7 @@ impl Entryway {
 
         canvas.copy(
             &ground,
-            rect!(64, 64, 32, 32),
+            rect!(32, 64, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 2,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
@@ -77,6 +78,19 @@ impl Entryway {
                 PIXEL_PER_DOT
             ),
         )?;
+
+        if state.dad_dead {
+            canvas.copy(
+                &blood,
+                rect!(0, 0, 32, 32),
+                rect!(
+                    PIXEL_PER_DOT * 2,
+                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT,
+                    PIXEL_PER_DOT
+                ),
+            )?;
+        }
 
         let kitchen_door_offset = if state.coin_0 && state.coin_1 && state.coin_2 && state.coin_3 {
             32
@@ -123,7 +137,7 @@ impl Entryway {
 
         if state.dad_dead && !state.child_dead {
             canvas.copy(
-                &hint,
+                &blood,
                 rect!(32, 0, 32, 32),
                 rect!(
                     4 * PIXEL_PER_DOT,

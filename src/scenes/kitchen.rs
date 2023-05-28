@@ -33,7 +33,7 @@ impl Kitchen {
             for y in 0..=GROUND_LEVEL {
                 canvas.copy(
                     &ground,
-                    rect!(0, 64, 32, 32),
+                    rect!(128, 96, 32, 32),
                     rect!(
                         x * PIXEL_PER_DOT,
                         y * PIXEL_PER_DOT,
@@ -66,9 +66,10 @@ impl Kitchen {
             ),
         )?;
 
+        let image_offset = if state.dad_dead { 128 } else { 64 };
         canvas.copy(
             &ground,
-            rect!(96, 64, 32, 32),
+            rect!(image_offset, 64, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 9,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
@@ -94,6 +95,17 @@ impl Kitchen {
         )?;
 
         if state.dad_dead {
+            canvas.copy(
+                &blood,
+                rect!(0, 32, 64, 32),
+                rect!(
+                    PIXEL_PER_DOT * 3,
+                    GROUND_LEVEL * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT * 2,
+                    PIXEL_PER_DOT
+                ),
+            )?;
+
             canvas.copy(
                 &blood,
                 rect!(64, 0, 32, 32),
