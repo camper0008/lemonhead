@@ -68,4 +68,8 @@ impl State {
                 .unwrap();
         }
     }
+
+    pub fn stop_background_track(&self) {
+        self.music.send(AudioConfiguration::Stop).unwrap();
+    }
 }

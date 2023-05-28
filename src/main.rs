@@ -59,6 +59,7 @@ pub fn run() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let window = prepare_window(&sdl_context)?;
     let mut canvas = prepare_canvas(window)?;
+
     let mut animation_timer = 0.0;
 
     let outside_house = Outside::default();
@@ -66,8 +67,6 @@ pub fn run() -> Result<(), String> {
     let kitchen = Kitchen::default();
     let living_room = LivingRoom::default();
     let murder_living_room = MurderLivingRoom::default();
-
-    let mut run_track_playing = false;
 
     let mut scene: &dyn Scene = &living_room;
     let mut state = State::new(sound_effect_sender, music_effect_sender);
@@ -146,10 +145,6 @@ pub fn run() -> Result<(), String> {
         }
 
         if state.coin_7 && state.coin_8 {
-            if !run_track_playing {
-                state.change_background_track("assets/run.ogg");
-                run_track_playing = true;
-            }
             state.confronting_animation_timer += delta_time;
         }
 

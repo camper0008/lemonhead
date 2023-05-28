@@ -212,8 +212,18 @@ impl Scene for LivingRoom {
                     state.confronted = true;
                     state.scene_changed = Some((8.0, Scenes::Kitchen));
                 }
-                Interactables::Coin7 => state.coin_7 = true,
-                Interactables::Coin8 => state.coin_8 = true,
+                Interactables::Coin7 => {
+                    state.coin_7 = true;
+                    if state.coin_8 {
+                        state.change_background_track("assets/run.ogg");
+                    };
+                }
+                Interactables::Coin8 => {
+                    state.coin_8 = true;
+                    if state.coin_7 {
+                        state.change_background_track("assets/run.ogg");
+                    };
+                }
             }
         }
     }

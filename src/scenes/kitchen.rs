@@ -202,7 +202,10 @@ impl Scene for Kitchen {
                 Interactables::Coin4 => state.coin_4 = true,
                 Interactables::Coin5 => state.coin_5 = true,
                 Interactables::Coin6 => state.coin_6 = true,
-                Interactables::Weapon => state.weapon_picked_up = true,
+                Interactables::Weapon => {
+                    state.weapon_picked_up = true;
+                    state.change_background_track("assets/heartbeat.ogg");
+                }
                 Interactables::LivingRoomDoor => {
                     if state.confronted && !state.weapon_picked_up {
                         return;
