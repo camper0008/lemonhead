@@ -42,8 +42,8 @@ impl Actor {
         self.position.1 += y * delta_time;
     }
 
-    pub fn draw(&mut self, canvas: &mut WindowCanvas, delta_time: f64) {
-        let offset = if delta_time % 0.5 < 0.25 { 0 } else { 32 };
+    pub fn draw(&mut self, canvas: &mut WindowCanvas, animation_timer: f64) {
+        let offset = if animation_timer % 0.5 < 0.25 { 0 } else { 32 };
         let offset = offset
             + match self.state {
                 ActorState::Idle => 0,

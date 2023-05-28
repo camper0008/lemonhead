@@ -14,14 +14,14 @@ use super::Scenes;
 const HOUSE_OFFSET: i32 = 5;
 
 #[derive(Default)]
-pub struct OutsideHouse {}
+pub struct Outside {}
 
 enum Interactables {
     Door,
     Key,
 }
 
-impl OutsideHouse {
+impl Outside {
     fn draw_house(&self, canvas: &mut WindowCanvas, door_open: bool) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
         let door = texture_creator.load_texture(Path::new("assets/door.png"))?;
@@ -39,6 +39,12 @@ impl OutsideHouse {
                 ),
             )?;
         }
+
+        canvas.copy(
+            &ground,
+            rect!(0, 96, 32, 32),
+            rect!(PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT),
+        )?;
 
         canvas.copy(
             &ground,
@@ -139,7 +145,7 @@ impl OutsideHouse {
     }
 }
 
-impl Scene for OutsideHouse {
+impl Scene for Outside {
     fn draw_scenery(
         &self,
         state: &crate::state::State,
@@ -172,7 +178,11 @@ impl Scene for OutsideHouse {
                 Interactables::Key => state.front_door_key_picked_up = true,
                 Interactables::Door => {
                     if state.front_door_opened {
-                        state.scene_changed = Some((1.0, Scenes::InsideHouse));
+                        state.scene_changed = Some((1.0, Scenes::Entryway));
+
+                        if !(state.confronted) {
+                            state.change_background_track("assets/lemonhead.ogg");
+                        }
                     } else {
                         state.front_door_opened = true;
                     }

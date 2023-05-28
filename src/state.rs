@@ -11,6 +11,15 @@ pub struct State {
     pub coin_1: bool,
     pub coin_2: bool,
     pub coin_3: bool,
+    pub coin_4: bool,
+    pub coin_5: bool,
+    pub coin_6: bool,
+    pub coin_7: bool,
+    pub coin_8: bool,
+    pub confronted: bool,
+    pub bad_guy_dead: bool,
+    pub child_dead: bool,
+    pub confronting_animation_timer: f64,
     pub scene_changed: Option<(f64, Scenes)>,
     sound_effect: Sender<AudioConfiguration>,
     music: Sender<AudioConfiguration>,
@@ -29,6 +38,15 @@ impl State {
             coin_1: false,
             coin_2: false,
             coin_3: false,
+            coin_4: false,
+            coin_5: false,
+            coin_6: false,
+            coin_7: false,
+            coin_8: false,
+            confronted: false,
+            bad_guy_dead: false,
+            child_dead: false,
+            confronting_animation_timer: 0.0,
             scene_changed: None,
             sound_effect,
             music,
@@ -44,8 +62,10 @@ impl State {
     pub fn change_background_track(&self, path: &'static str) {
         self.music.send(AudioConfiguration::Stop).unwrap();
 
-        self.music
-            .send(AudioConfiguration::Play(0.5, path))
-            .unwrap();
+        for _ in 0..500 {
+            self.music
+                .send(AudioConfiguration::Play(0.5, path))
+                .unwrap();
+        }
     }
 }

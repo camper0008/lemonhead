@@ -9,14 +9,17 @@ mod state;
 use actor::Actor;
 use audio::audio_thread;
 use helper::draw_interact_prompt;
-use scenes::inside_house::InsideHouse;
+use scenes::entryway::Entryway;
+use scenes::kitchen::Kitchen;
+use scenes::living_room::LivingRoom;
+use scenes::murder_living_room::MurderLivingRoom;
 use sdl2::render::WindowCanvas;
 use std::collections::HashMap;
 use std::time::Duration;
 
 use globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use scene::Scene;
-use scenes::outside_house::OutsideHouse;
+use scenes::outside::Outside;
 use sdl2::event::Event;
 use sdl2::image::InitFlag;
 use sdl2::keyboard::Keycode;
@@ -58,9 +61,15 @@ pub fn run() -> Result<(), String> {
     let mut canvas = prepare_canvas(window)?;
     let mut animation_timer = 0.0;
 
-    let outside_house = OutsideHouse::default();
-    let inside_house = InsideHouse::default();
-    let mut scene: &dyn Scene = &outside_house;
+    let outside_house = Outside::default();
+    let inside_house = Entryway::default();
+    let kitchen = Kitchen::default();
+    let living_room = LivingRoom::default();
+    let murder_living_room = MurderLivingRoom::default();
+
+    let mut run_track_playing = false;
+
+    let mut scene: &dyn Scene = &living_room;
     let mut state = State::new(sound_effect_sender, music_effect_sender);
     let mut lemonhead = Actor::new("assets/lemonhead.png");
     lemonhead.set_position(
@@ -68,7 +77,7 @@ pub fn run() -> Result<(), String> {
         (PIXEL_PER_DOT * GROUND_LEVEL).into(),
     );
 
-    state.change_background_track("assets/lemonhead.ogg");
+    state.change_background_track("assets/outside.ogg");
 
     'mainloop: loop {
         let delta_time = 1.0 / 60.0;
@@ -76,7 +85,7 @@ pub fn run() -> Result<(), String> {
         scene.draw_scenery(&state, &mut canvas, animation_timer)?;
         let should_draw_interact = scene.should_draw_interact_popup(&state, lemonhead.x());
         if should_draw_interact {
-            draw_interact_prompt(&mut canvas, animation_timer)?;
+            draw_interact_prompt(&mut canvas, &state, animation_timer)?;
         }
 
         lemonhead.idle();
@@ -122,8 +131,11 @@ pub fn run() -> Result<(), String> {
             None => (),
             Some((position, ref new_scene)) => {
                 match new_scene {
-                    scenes::Scenes::InsideHouse => scene = &inside_house,
-                    scenes::Scenes::OutsideHouse => scene = &outside_house,
+                    scenes::Scenes::Entryway => scene = &inside_house,
+                    scenes::Scenes::Outside => scene = &outside_house,
+                    scenes::Scenes::Kitchen => scene = &kitchen,
+                    scenes::Scenes::LivingRoom => scene = &living_room,
+                    scenes::Scenes::MurderLivingRoom => scene = &murder_living_room,
                 };
                 lemonhead.set_position(
                     f64::from(PIXEL_PER_DOT) * position,
@@ -131,6 +143,14 @@ pub fn run() -> Result<(), String> {
                 );
                 state.scene_changed = None;
             }
+        }
+
+        if state.coin_7 && state.coin_8 {
+            if !run_track_playing {
+                state.change_background_track("assets/run.ogg");
+                run_track_playing = true;
+            }
+            state.confronting_animation_timer += delta_time;
         }
 
         animation_timer += delta_time;

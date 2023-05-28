@@ -1,7 +1,13 @@
-pub mod inside_house;
-pub mod outside_house;
+pub mod entryway;
+pub mod kitchen;
+pub mod living_room;
+pub mod murder_living_room;
+pub mod outside;
 
 pub enum Scenes {
-    InsideHouse,
-    OutsideHouse,
+    Entryway,
+    LivingRoom,
+    MurderLivingRoom,
+    Outside,
+    Kitchen,
 }

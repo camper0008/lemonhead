@@ -12,7 +12,7 @@ use crate::{rect, scene::Scene};
 use super::Scenes;
 
 #[derive(Default)]
-pub struct InsideHouse {}
+pub struct Entryway {}
 
 enum Interactables {
     KitchenDoor,
@@ -23,11 +23,12 @@ enum Interactables {
     Coin3,
 }
 
-impl InsideHouse {
+impl Entryway {
     fn draw_house(&self, canvas: &mut WindowCanvas, state: &State) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
         let door = texture_creator.load_texture(Path::new("assets/door.png"))?;
         let ground = texture_creator.load_texture(Path::new("assets/ground.png"))?;
+        let hint = texture_creator.load_texture(Path::new("assets/child.png"))?;
 
         for x in 0..10 {
             for y in 0..=GROUND_LEVEL {
@@ -55,11 +56,34 @@ impl InsideHouse {
             ),
         )?;
 
+        canvas.copy(
+            &ground,
+            rect!(32, 64, 32, 32),
+            rect!(
+                PIXEL_PER_DOT * 7,
+                (GROUND_LEVEL) * PIXEL_PER_DOT,
+                PIXEL_PER_DOT,
+                PIXEL_PER_DOT
+            ),
+        )?;
+
+        canvas.copy(
+            &ground,
+            rect!(64, 64, 32, 32),
+            rect!(
+                PIXEL_PER_DOT * 2,
+                (GROUND_LEVEL) * PIXEL_PER_DOT,
+                PIXEL_PER_DOT,
+                PIXEL_PER_DOT
+            ),
+        )?;
+
         let kitchen_door_offset = if state.coin_0 && state.coin_1 && state.coin_2 && state.coin_3 {
             32
         } else {
             0
         };
+
         canvas.copy(
             &door,
             rect!(kitchen_door_offset, 0, 32, 32),
@@ -70,6 +94,33 @@ impl InsideHouse {
                 PIXEL_PER_DOT
             ),
         )?;
+
+        let child_door_offset = if state.bad_guy_dead { 32 } else { 0 };
+
+        canvas.copy(
+            &door,
+            rect!(child_door_offset, 0, 32, 32),
+            rect!(
+                4 * PIXEL_PER_DOT,
+                GROUND_LEVEL * PIXEL_PER_DOT,
+                PIXEL_PER_DOT,
+                PIXEL_PER_DOT
+            ),
+        )?;
+
+        if !state.bad_guy_dead && !state.child_dead {
+            canvas.copy(
+                &hint,
+                rect!(0, 0, 32, 32),
+                rect!(
+                    4 * PIXEL_PER_DOT,
+                    (GROUND_LEVEL - 1) * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT,
+                    PIXEL_PER_DOT
+                ),
+            )?;
+        }
+
         Ok(())
     }
 
@@ -131,7 +182,7 @@ impl InsideHouse {
     }
 }
 
-impl Scene for InsideHouse {
+impl Scene for Entryway {
     fn draw_scenery(
         &self,
         state: &crate::state::State,
@@ -170,13 +221,21 @@ impl Scene for InsideHouse {
         if let Some(item) = closest {
             state.send_audio("assets/click.ogg");
             match item {
-                Interactables::ExitDoor => state.scene_changed = Some((6.0, Scenes::OutsideHouse)),
+                Interactables::ExitDoor => {
+                    if state.confronted && !state.child_dead {
+                        return;
+                    }
+                    state.scene_changed = Some((6.0, Scenes::Outside));
+                    if !state.confronted {
+                        state.change_background_track("assets/outside.ogg");
+                    }
+                }
                 Interactables::Coin0 => state.coin_0 = true,
                 Interactables::Coin1 => state.coin_1 = true,
                 Interactables::Coin2 => state.coin_2 = true,
                 Interactables::Coin3 => state.coin_3 = true,
                 Interactables::KitchenDoor => {
-                    state.scene_changed = Some((5.0, Scenes::OutsideHouse));
+                    state.scene_changed = Some((1.0, Scenes::Kitchen));
                 }
             }
         }
