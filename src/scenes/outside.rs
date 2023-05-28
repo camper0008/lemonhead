@@ -223,7 +223,7 @@ impl Scene for Outside {
                 Interactables::Key => state.front_door_key_picked_up = true,
                 Interactables::Ascension => {
                     state.ascended = true;
-                    state.change_background_track("assets/ascension.ogg");
+                    state.play_ascension_track();
                 }
                 Interactables::Door => {
                     if state.front_door_opened {

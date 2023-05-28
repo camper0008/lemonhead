@@ -79,4 +79,12 @@ impl State {
     pub fn stop_background_track(&self) {
         self.music.send(AudioConfiguration::Stop).unwrap();
     }
+
+    pub fn play_ascension_track(&self) {
+        self.music.send(AudioConfiguration::Stop).unwrap();
+
+        self.music
+            .send(AudioConfiguration::Play(0.5, "assets/ascension.ogg"))
+            .unwrap();
+    }
 }

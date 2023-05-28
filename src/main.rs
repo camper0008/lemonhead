@@ -80,7 +80,7 @@ pub fn run() -> Result<(), String> {
 
     state.change_background_track("assets/outside.ogg");
 
-    'mainloop: loop {
+    'game_loop: loop {
         let delta_time = 1.0 / 60.0;
         canvas.clear();
         scene.draw_scenery(&state, &mut canvas, animation_timer)?;
@@ -104,7 +104,7 @@ pub fn run() -> Result<(), String> {
         }
 
         if state.ascended {
-            lemonhead.offset_position(0.0, -25.0, delta_time)
+            lemonhead.offset_position(0.0, -PIXEL_PER_DOT as f64 / 4.0, delta_time)
         }
 
         lemonhead.draw(&mut canvas, animation_timer);
@@ -115,7 +115,7 @@ pub fn run() -> Result<(), String> {
                 | Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
-                } => break 'mainloop,
+                } => break 'game_loop,
                 Event::KeyDown {
                     keycode: Some(k @ (Keycode::A | Keycode::D | Keycode::Space)),
                     ..

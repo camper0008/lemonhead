@@ -52,7 +52,7 @@ impl ChildRoom {
 
         canvas.copy(
             &ground,
-            rect!(32, 64, 32, 32),
+            rect!(0, 128, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 3,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
@@ -63,7 +63,7 @@ impl ChildRoom {
 
         canvas.copy(
             &ground,
-            rect!(64, 64, 32, 32),
+            rect!(128, 0, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 4,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
@@ -74,7 +74,18 @@ impl ChildRoom {
 
         canvas.copy(
             &ground,
-            rect!(64, 96, 32, 32),
+            rect!(128, 32, 32, 32),
+            rect!(
+                PIXEL_PER_DOT * 4,
+                (GROUND_LEVEL) * PIXEL_PER_DOT,
+                PIXEL_PER_DOT,
+                PIXEL_PER_DOT
+            ),
+        )?;
+
+        canvas.copy(
+            &ground,
+            rect!(96, 128, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 6,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
@@ -86,15 +97,12 @@ impl ChildRoom {
         Ok(())
     }
 
-    fn draw_dad(
+    fn draw_child(
         &self,
         canvas: &mut WindowCanvas,
         state: &State,
         animation_timer: f64,
     ) -> Result<(), String> {
-        if !(state.coin_7 && state.coin_8) {
-            return Ok(());
-        }
         let texture_creator = canvas.texture_creator();
         let child = texture_creator.load_texture(Path::new("assets/child.png"))?;
         let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
@@ -111,7 +119,7 @@ impl ChildRoom {
             &child,
             rect!(offset, 0, 32, 32),
             rect!(
-                PIXEL_PER_DOT * 8,
+                PIXEL_PER_DOT * 5,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
@@ -123,7 +131,7 @@ impl ChildRoom {
                 &blood,
                 rect!(0, 0, 32, 32),
                 rect!(
-                    PIXEL_PER_DOT * 8,
+                    PIXEL_PER_DOT * 5,
                     (GROUND_LEVEL) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
@@ -135,7 +143,7 @@ impl ChildRoom {
                 &blood,
                 rect!(0, 32, 32, 32),
                 rect!(
-                    PIXEL_PER_DOT * 7,
+                    PIXEL_PER_DOT * 4,
                     (GROUND_LEVEL) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
@@ -147,7 +155,7 @@ impl ChildRoom {
                 &blood,
                 rect!(32, 32, 32, 32),
                 rect!(
-                    PIXEL_PER_DOT * 9,
+                    PIXEL_PER_DOT * 6,
                     (GROUND_LEVEL) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
@@ -195,7 +203,9 @@ impl ChildRoom {
 
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
-        items.push((f64::from(PIXEL_PER_DOT * 8), Interactables::Child));
+        if state.child_stabs < 3 {
+            items.push((f64::from(PIXEL_PER_DOT * 5), Interactables::Child));
+        }
 
         if state.child_dead {
             items.push((f64::from(PIXEL_PER_DOT), Interactables::ExitDoor));
@@ -215,7 +225,7 @@ impl Scene for ChildRoom {
         canvas.clear();
         self.draw_house(canvas)?;
         self.draw_ground(canvas)?;
-        self.draw_dad(canvas, state, animation_timer)?;
+        self.draw_child(canvas, state, animation_timer)?;
         Ok(())
     }
 
