@@ -70,7 +70,7 @@ pub fn run() -> Result<(), String> {
     let murder_living_room = MurderLivingRoom::default();
     let child_room = ChildRoom::default();
 
-    let mut scene: &dyn Scene = &living_room;
+    let mut scene: &dyn Scene = &outside;
     let mut state = State::new(sound_effect_sender, music_effect_sender);
     let mut lemonhead = Actor::new("assets/lemonhead.png");
     lemonhead.set_position(
