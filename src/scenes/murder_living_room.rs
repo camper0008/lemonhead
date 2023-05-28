@@ -1,12 +1,10 @@
 use std::path::Path;
 
-use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
-use crate::actor::Actor;
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{closest_item_within_distance, draw_item};
+use crate::helper::closest_item_within_distance;
 use crate::state::State;
 use crate::{rect, scene::Scene};
 
@@ -17,8 +15,7 @@ pub struct MurderLivingRoom {}
 
 enum Interactables {
     ExitDoor,
-    Coin7,
-    Coin8,
+    Dad,
 }
 
 impl MurderLivingRoom {
@@ -89,7 +86,7 @@ impl MurderLivingRoom {
         Ok(())
     }
 
-    fn draw_confrontation(
+    fn draw_dad(
         &self,
         canvas: &mut WindowCanvas,
         state: &State,
@@ -99,27 +96,60 @@ impl MurderLivingRoom {
             return Ok(());
         }
         let texture_creator = canvas.texture_creator();
-        let bubble = texture_creator.load_texture(Path::new("assets/bubble.png"))?;
-        let offset = (state.confronting_animation_timer * 8.0).round() * 32.0;
+        let dad = texture_creator.load_texture(Path::new("assets/dad.png"))?;
+        let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
 
-        let mut dad = Actor::new("assets/dad.png");
-        dad.set_position(
-            PIXEL_PER_DOT as f64 * 14.0
-                - (state.confronting_animation_timer * 2.0 * PIXEL_PER_DOT as f64),
-            (PIXEL_PER_DOT * GROUND_LEVEL).into(),
-        );
-        dad.run_left();
-        dad.draw(canvas, animation_timer);
+        let offset = if state.dad_dead {
+            192
+        } else if animation_timer < 0.5 {
+            0
+        } else {
+            32
+        };
+
         canvas.copy(
-            &bubble,
+            &dad,
             rect!(offset, 0, 32, 32),
             rect!(
-                PIXEL_PER_DOT * 9,
+                PIXEL_PER_DOT * 8,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
             ),
         )?;
+
+        if state.dad_dead {
+            canvas.copy(
+                &blood,
+                rect!(0, 32, 32, 32),
+                rect!(
+                    PIXEL_PER_DOT * 7,
+                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT,
+                    PIXEL_PER_DOT
+                ),
+            )?;
+            canvas.copy(
+                &blood,
+                rect!(0, 0, 32, 32),
+                rect!(
+                    PIXEL_PER_DOT * 8,
+                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT,
+                    PIXEL_PER_DOT
+                ),
+            )?;
+            canvas.copy(
+                &blood,
+                rect!(32, 32, 32, 32),
+                rect!(
+                    PIXEL_PER_DOT * 9,
+                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT,
+                    PIXEL_PER_DOT
+                ),
+            )?;
+        }
 
         Ok(())
     }
@@ -161,14 +191,9 @@ impl MurderLivingRoom {
 
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
-        if !state.coin_7 {
-            items.push((f64::from(PIXEL_PER_DOT * 3), Interactables::Coin7));
-        }
-        if !state.coin_8 {
-            items.push((f64::from(PIXEL_PER_DOT * 8), Interactables::Coin8));
-        }
+        items.push((f64::from(PIXEL_PER_DOT * 8), Interactables::Dad));
 
-        if state.coin_7 && state.coin_8 {
+        if state.dad_dead {
             items.push((f64::from(PIXEL_PER_DOT), Interactables::ExitDoor));
         }
 
@@ -183,17 +208,10 @@ impl Scene for MurderLivingRoom {
         canvas: &mut sdl2::render::WindowCanvas,
         animation_timer: f64,
     ) -> Result<(), String> {
-        canvas.set_draw_color(Color::RGB(200, 200, 200));
         canvas.clear();
         self.draw_house(canvas)?;
         self.draw_ground(canvas)?;
-        self.draw_confrontation(canvas, state, animation_timer)?;
-        if !state.coin_7 {
-            draw_item(canvas, 3, "assets/coin.png", animation_timer)?;
-        }
-        if !state.coin_8 {
-            draw_item(canvas, 8, "assets/coin.png", animation_timer)?;
-        }
+        self.draw_dad(canvas, state, animation_timer)?;
         Ok(())
     }
 
@@ -208,13 +226,15 @@ impl Scene for MurderLivingRoom {
 
         let closest = closest_item_within_distance(items, position);
         if let Some(item) = closest {
-            state.send_audio("assets/click.ogg");
             match item {
                 Interactables::ExitDoor => {
+                    state.send_audio("assets/click.ogg");
                     state.scene_changed = Some((8.0, Scenes::Kitchen));
                 }
-                Interactables::Coin7 => state.coin_7 = true,
-                Interactables::Coin8 => state.coin_8 = true,
+                Interactables::Dad => {
+                    state.send_audio("assets/stab.ogg");
+                    state.dad_dead = true;
+                }
             }
         }
     }

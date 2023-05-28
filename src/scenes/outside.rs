@@ -152,7 +152,11 @@ impl Scene for Outside {
         canvas: &mut sdl2::render::WindowCanvas,
         animation_timer: f64,
     ) -> Result<(), String> {
-        canvas.set_draw_color(Color::RGB(255, 255, 255));
+        if state.child_dead {
+            canvas.set_draw_color(Color::RGB(255, 0, 0));
+        } else {
+            canvas.set_draw_color(Color::RGB(255, 255, 255));
+        }
         canvas.clear();
         self.draw_house(canvas, state.front_door_opened)?;
         self.draw_ground(canvas)?;

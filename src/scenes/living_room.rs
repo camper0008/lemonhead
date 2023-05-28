@@ -1,6 +1,5 @@
 use std::path::Path;
 
-use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
@@ -183,7 +182,6 @@ impl Scene for LivingRoom {
         canvas: &mut sdl2::render::WindowCanvas,
         animation_timer: f64,
     ) -> Result<(), String> {
-        canvas.set_draw_color(Color::RGB(200, 200, 200));
         canvas.clear();
         self.draw_house(canvas)?;
         self.draw_ground(canvas)?;
