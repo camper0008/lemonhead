@@ -19,6 +19,8 @@ pub struct State {
     pub confronted: bool,
     pub dad_dead: bool,
     pub child_dead: bool,
+    pub child_stabs: u32,
+    pub ascended: bool,
     pub confronting_animation_timer: f64,
     pub scene_changed: Option<(f64, Scenes)>,
     sound_effect: Sender<AudioConfiguration>,
@@ -43,9 +45,11 @@ impl State {
             coin_6: false,
             coin_7: false,
             coin_8: false,
+            ascended: false,
             confronted: false,
             dad_dead: false,
             child_dead: false,
+            child_stabs: 0,
             confronting_animation_timer: 0.0,
             scene_changed: None,
             sound_effect,
@@ -54,6 +58,9 @@ impl State {
     }
 
     pub fn send_audio(&self, path: &'static str) {
+        if self.child_stabs >= 3 {
+            return;
+        }
         self.sound_effect
             .send(AudioConfiguration::Play(1.0, path))
             .unwrap();

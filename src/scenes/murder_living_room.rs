@@ -233,7 +233,10 @@ impl Scene for MurderLivingRoom {
                 }
                 Interactables::Dad => {
                     state.send_audio("assets/stab.ogg");
-                    state.dad_dead = true;
+                    if !state.dad_dead {
+                        state.dad_dead = true;
+                        state.change_background_track("assets/heartbeat-child.ogg");
+                    }
                 }
             }
         }

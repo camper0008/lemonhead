@@ -9,6 +9,7 @@ mod state;
 use actor::Actor;
 use audio::audio_thread;
 use helper::draw_interact_prompt;
+use scenes::child_room::ChildRoom;
 use scenes::entryway::Entryway;
 use scenes::kitchen::Kitchen;
 use scenes::living_room::LivingRoom;
@@ -62,13 +63,14 @@ pub fn run() -> Result<(), String> {
 
     let mut animation_timer = 0.0;
 
-    let outside_house = Outside::default();
-    let inside_house = Entryway::default();
+    let outside = Outside::default();
+    let entryway = Entryway::default();
     let kitchen = Kitchen::default();
     let living_room = LivingRoom::default();
     let murder_living_room = MurderLivingRoom::default();
+    let child_room = ChildRoom::default();
 
-    let mut scene: &dyn Scene = &living_room;
+    let mut scene: &dyn Scene = &outside;
     let mut state = State::new(sound_effect_sender, music_effect_sender);
     let mut lemonhead = Actor::new("assets/lemonhead.png");
     lemonhead.set_position(
@@ -88,17 +90,21 @@ pub fn run() -> Result<(), String> {
         }
 
         lemonhead.idle();
-        if *keys_down.get(&Keycode::A).unwrap_or(&false) {
-            lemonhead.offset_position(f64::from(PIXEL_PER_DOT) * -1.5, 0.0, delta_time);
+        if *keys_down.get(&Keycode::A).unwrap_or(&false) && !state.ascended {
+            lemonhead.offset_position(f64::from(PIXEL_PER_DOT) * -1.25, 0.0, delta_time);
             lemonhead.run_left();
         }
-        if *keys_down.get(&Keycode::D).unwrap_or(&false) {
-            lemonhead.offset_position(f64::from(PIXEL_PER_DOT) * 1.5, 0.0, delta_time);
+        if *keys_down.get(&Keycode::D).unwrap_or(&false) && !state.ascended {
+            lemonhead.offset_position(f64::from(PIXEL_PER_DOT) * 1.25, 0.0, delta_time);
             lemonhead.run_right();
         }
         if *keys_down.get(&Keycode::Space).unwrap_or(&false) {
             scene.interact(&mut state, lemonhead.x());
             keys_down.insert(Keycode::Space, false);
+        }
+
+        if state.ascended {
+            lemonhead.offset_position(0.0, -25.0, delta_time)
         }
 
         lemonhead.draw(&mut canvas, animation_timer);
@@ -130,11 +136,12 @@ pub fn run() -> Result<(), String> {
             None => (),
             Some((position, ref new_scene)) => {
                 match new_scene {
-                    scenes::Scenes::Entryway => scene = &inside_house,
-                    scenes::Scenes::Outside => scene = &outside_house,
+                    scenes::Scenes::Entryway => scene = &entryway,
+                    scenes::Scenes::Outside => scene = &outside,
                     scenes::Scenes::Kitchen => scene = &kitchen,
                     scenes::Scenes::LivingRoom => scene = &living_room,
                     scenes::Scenes::MurderLivingRoom => scene = &murder_living_room,
+                    scenes::Scenes::ChildRoom => scene = &child_room,
                 };
                 lemonhead.set_position(
                     f64::from(PIXEL_PER_DOT) * position,

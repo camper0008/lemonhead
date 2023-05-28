@@ -62,21 +62,35 @@ pub fn draw_interact_prompt(
 
     let offset = (animation_timer * PI * 2.0).sin() * f64::from(PIXEL_PER_DOT) * 0.05;
 
-    let x_offset = if state.dad_dead && !state.child_dead {
-        32
+    let x_size = if state.confronted && !state.dad_dead {
+        2
+    } else {
+        1
+    };
+
+    let x_offset = if state.confronted && !state.dad_dead {
+        0
+    } else if state.dad_dead && !state.child_dead || state.child_dead && state.child_stabs > 2 {
+        1
     } else {
         0
     };
 
-    let (x_size, x_position, y_offset) = if state.confronted && !state.dad_dead {
-        (2, 3.5, 0)
+    let y_offset = if state.confronted && !state.weapon_picked_up {
+        1
+    } else if state.weapon_picked_up && !state.dad_dead {
+        0
+    } else if state.child_dead {
+        3
     } else {
-        (1, 4.5, 16)
+        2
     };
+
+    let x_position = 5.5 - x_size as f64;
 
     canvas.copy(
         &texture,
-        rect!(x_offset, y_offset, x_size * 32, 16),
+        rect!(x_offset * 32, y_offset * 16, x_size * 32, 16),
         rect!(
             (x_position * PIXEL_PER_DOT as f64),
             9 * PIXEL_PER_DOT + offset as i32,

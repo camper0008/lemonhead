@@ -27,6 +27,7 @@ impl Kitchen {
         let texture_creator = canvas.texture_creator();
         let door = texture_creator.load_texture(Path::new("assets/door.png"))?;
         let ground = texture_creator.load_texture(Path::new("assets/ground.png"))?;
+        let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
 
         for x in 0..10 {
             for y in 0..=GROUND_LEVEL {
@@ -91,6 +92,20 @@ impl Kitchen {
                 PIXEL_PER_DOT
             ),
         )?;
+
+        if state.dad_dead {
+            canvas.copy(
+                &blood,
+                rect!(64, 0, 32, 32),
+                rect!(
+                    6 * PIXEL_PER_DOT,
+                    (GROUND_LEVEL - 1) * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT,
+                    PIXEL_PER_DOT
+                ),
+            )?;
+        }
+
         Ok(())
     }
 

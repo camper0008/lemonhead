@@ -18,14 +18,21 @@ pub struct Outside {}
 
 enum Interactables {
     Door,
+    Ascension,
     Key,
 }
 
 impl Outside {
-    fn draw_house(&self, canvas: &mut WindowCanvas, door_open: bool) -> Result<(), String> {
+    fn draw_house(
+        &self,
+        canvas: &mut WindowCanvas,
+        state: &State,
+        animation_timer: f64,
+    ) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
         let door = texture_creator.load_texture(Path::new("assets/door.png"))?;
         let ground = texture_creator.load_texture(Path::new("assets/ground.png"))?;
+        let ascension = texture_creator.load_texture(Path::new("assets/ascension.png"))?;
 
         for x in HOUSE_OFFSET..HOUSE_OFFSET + 3 {
             canvas.copy(
@@ -40,11 +47,19 @@ impl Outside {
             )?;
         }
 
-        canvas.copy(
-            &ground,
-            rect!(0, 96, 32, 32),
-            rect!(PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT),
-        )?;
+        if state.child_dead {
+            canvas.copy(
+                &ground,
+                rect!(96, 96, 32, 32),
+                rect!(PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT),
+            )?;
+        } else {
+            canvas.copy(
+                &ground,
+                rect!(0, 96, 32, 32),
+                rect!(PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT),
+            )?;
+        }
 
         canvas.copy(
             &ground,
@@ -79,7 +94,7 @@ impl Outside {
             ),
         )?;
 
-        let door_offset = if door_open { 32 } else { 0 };
+        let door_offset = if state.front_door_opened { 32 } else { 0 };
 
         canvas.copy(
             &door,
@@ -91,6 +106,28 @@ impl Outside {
                 PIXEL_PER_DOT
             ),
         )?;
+
+        let ascension_offset = (animation_timer * 4.0).floor() * 32.0;
+
+        if state.child_dead {
+            canvas.copy(
+                &ascension,
+                rect!(ascension_offset, 0, 32, 128),
+                rect!(3 * PIXEL_PER_DOT, 0, PIXEL_PER_DOT, PIXEL_PER_DOT * 4),
+            )?;
+
+            canvas.copy(
+                &ascension,
+                rect!(ascension_offset, 0, 32, 128),
+                rect!(
+                    3 * PIXEL_PER_DOT,
+                    4 * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT,
+                    PIXEL_PER_DOT * 4
+                ),
+            )?;
+        }
+
         Ok(())
     }
 
@@ -141,6 +178,10 @@ impl Outside {
             items.push((f64::from(PIXEL_PER_DOT * 3), Interactables::Key));
         }
 
+        if state.child_dead && !state.ascended {
+            items.push((f64::from(PIXEL_PER_DOT * 3), Interactables::Ascension));
+        }
+
         items
     }
 }
@@ -153,12 +194,12 @@ impl Scene for Outside {
         animation_timer: f64,
     ) -> Result<(), String> {
         if state.child_dead {
-            canvas.set_draw_color(Color::RGB(255, 0, 0));
+            canvas.set_draw_color(Color::RGB(217, 87, 99));
         } else {
             canvas.set_draw_color(Color::RGB(255, 255, 255));
         }
         canvas.clear();
-        self.draw_house(canvas, state.front_door_opened)?;
+        self.draw_house(canvas, state, animation_timer)?;
         self.draw_ground(canvas)?;
         if !state.front_door_key_picked_up {
             draw_item(canvas, 3, "assets/key.png", animation_timer)?;
@@ -180,6 +221,10 @@ impl Scene for Outside {
             state.send_audio("assets/click.ogg");
             match item {
                 Interactables::Key => state.front_door_key_picked_up = true,
+                Interactables::Ascension => {
+                    state.ascended = true;
+                    state.change_background_track("assets/ascension.ogg");
+                }
                 Interactables::Door => {
                     if state.front_door_opened {
                         state.scene_changed = Some((1.0, Scenes::Entryway));
