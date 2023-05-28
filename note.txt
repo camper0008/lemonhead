@@ -1,4 +1,0 @@
--1. maybe add a little bit of tunes to the weapon pickup heartbeat, but none to the other heartbeats
-0. make child base heartbeat noticably faster
-1. make audio stop when child dies through the child dying function rather than global state
-2. play even faster heartbeat when entering childs room
