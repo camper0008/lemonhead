@@ -7,6 +7,7 @@ mod menu;
 mod scene;
 mod scenes;
 mod state;
+mod tileset;
 
 use actor::Actor;
 use audio::audio_thread;

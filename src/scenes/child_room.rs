@@ -4,8 +4,9 @@ use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::closest_item_within_distance;
+use crate::helper::{closest_item_within_distance, draw_ground, draw_wallpaper};
 use crate::state::State;
+use crate::tileset::Tile;
 use crate::{rect, scene::Scene};
 
 use super::Scenes;
@@ -21,78 +22,15 @@ enum Interactables {
 impl ChildRoom {
     fn draw_house(&self, canvas: &mut WindowCanvas) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
-        let door = texture_creator.load_texture(Path::new("assets/door.png"))?;
-        let ground = texture_creator.load_texture(Path::new("assets/ground.png"))?;
+        let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
-        for x in 0..10 {
-            for y in 0..=GROUND_LEVEL {
-                canvas.copy(
-                    &ground,
-                    rect!(64, 128, 32, 32),
-                    rect!(
-                        x * PIXEL_PER_DOT,
-                        y * PIXEL_PER_DOT,
-                        PIXEL_PER_DOT,
-                        PIXEL_PER_DOT
-                    ),
-                )?;
-            }
-        }
+        draw_wallpaper(canvas, &texture, Tile::DotWallpaper)?;
+        Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
-        canvas.copy(
-            &door,
-            rect!(32, 0, 32, 32),
-            rect!(
-                PIXEL_PER_DOT,
-                GROUND_LEVEL * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
-
-        canvas.copy(
-            &ground,
-            rect!(0, 128, 32, 32),
-            rect!(
-                PIXEL_PER_DOT * 3,
-                (GROUND_LEVEL) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
-
-        canvas.copy(
-            &ground,
-            rect!(128, 0, 32, 32),
-            rect!(
-                PIXEL_PER_DOT * 4,
-                (GROUND_LEVEL) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
-
-        canvas.copy(
-            &ground,
-            rect!(128, 32, 32, 32),
-            rect!(
-                PIXEL_PER_DOT * 4,
-                (GROUND_LEVEL) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
-
-        canvas.copy(
-            &ground,
-            rect!(96, 128, 32, 32),
-            rect!(
-                PIXEL_PER_DOT * 6,
-                (GROUND_LEVEL) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
+        Tile::ChildPoster.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Tile::Computer.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Tile::OfficeChair.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Tile::Bed.draw(canvas, &texture, (6.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         Ok(())
     }
@@ -119,7 +57,7 @@ impl ChildRoom {
             &child,
             rect!(offset, 0, 32, 32),
             rect!(
-                PIXEL_PER_DOT * 5,
+                PIXEL_PER_DOT * 5.,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
@@ -131,7 +69,7 @@ impl ChildRoom {
                 &blood,
                 rect!(0, 0, 32, 32),
                 rect!(
-                    PIXEL_PER_DOT * 5,
+                    PIXEL_PER_DOT * 5.,
                     (GROUND_LEVEL) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
@@ -143,7 +81,7 @@ impl ChildRoom {
                 &blood,
                 rect!(0, 32, 32, 32),
                 rect!(
-                    PIXEL_PER_DOT * 4,
+                    PIXEL_PER_DOT * 4.,
                     (GROUND_LEVEL) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
@@ -155,7 +93,7 @@ impl ChildRoom {
                 &blood,
                 rect!(32, 32, 32, 32),
                 rect!(
-                    PIXEL_PER_DOT * 6,
+                    PIXEL_PER_DOT * 6.,
                     (GROUND_LEVEL) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
@@ -166,45 +104,10 @@ impl ChildRoom {
         Ok(())
     }
 
-    fn draw_ground(&self, canvas: &mut WindowCanvas) -> Result<(), String> {
-        let texture_creator = canvas.texture_creator();
-        let ground_texture = texture_creator.load_texture(Path::new("assets/ground.png"))?;
-
-        for x in 0..10 {
-            canvas.copy(
-                &ground_texture,
-                rect!(0, 32, 32, 32),
-                rect!(
-                    x * PIXEL_PER_DOT,
-                    (GROUND_LEVEL + 1) * PIXEL_PER_DOT,
-                    PIXEL_PER_DOT,
-                    PIXEL_PER_DOT
-                ),
-            )?;
-        }
-
-        for x in 0..10 {
-            for y in (GROUND_LEVEL + 2)..10 {
-                canvas.copy(
-                    &ground_texture,
-                    rect!(32, 32, 32, 32),
-                    rect!(
-                        x * PIXEL_PER_DOT,
-                        y * PIXEL_PER_DOT,
-                        PIXEL_PER_DOT,
-                        PIXEL_PER_DOT
-                    ),
-                )?;
-            }
-        }
-
-        Ok(())
-    }
-
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
         if state.child_stabs < 3 {
-            items.push((f64::from(PIXEL_PER_DOT * 5), Interactables::Child));
+            items.push((f64::from(PIXEL_PER_DOT * 5.0), Interactables::Child));
         }
 
         if state.child_dead {
@@ -224,7 +127,7 @@ impl Scene for ChildRoom {
     ) -> Result<(), String> {
         canvas.clear();
         self.draw_house(canvas)?;
-        self.draw_ground(canvas)?;
+        draw_ground(canvas)?;
         self.draw_child(canvas, state, animation_timer)?;
         Ok(())
     }

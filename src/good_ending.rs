@@ -1,4 +1,4 @@
-use sdl2::{rect::Rect, render::Texture};
+use sdl2::render::Texture;
 use std::{f64::consts::PI, path::Path, time::Duration};
 
 use sdl2::{
@@ -7,28 +7,19 @@ use sdl2::{
 
 use crate::{
     audio::{audio_thread, AudioConfiguration},
-    globals::PIXEL_PER_DOT,
-    rect,
+    tileset::Tile,
 };
 
 fn draw_layer_0(
     canvas: &mut WindowCanvas,
-    ground: &Texture,
+    texture: &Texture,
     animation_timer: f64,
 ) -> Result<(), String> {
     let animation_timer = animation_timer % 10.0;
 
     for i in 0..2 {
-        canvas.copy(
-            &ground,
-            rect!(160, 128, 32, 32),
-            rect!(
-                (-animation_timer + i as f64 * 10.0) * PIXEL_PER_DOT as f64,
-                PIXEL_PER_DOT * 1,
-                PIXEL_PER_DOT * 10,
-                PIXEL_PER_DOT * 10
-            ),
-        )?;
+        let position = -animation_timer + (i * 10) as f64;
+        Tile::CityLayer0.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
     }
 
     Ok(())
@@ -36,22 +27,14 @@ fn draw_layer_0(
 
 fn draw_layer_1(
     canvas: &mut WindowCanvas,
-    ground: &Texture,
+    texture: &Texture,
     animation_timer: f64,
 ) -> Result<(), String> {
     let animation_timer = (animation_timer * 2.5) % 10.0;
 
-    for i in 0..3 {
-        canvas.copy(
-            &ground,
-            rect!(128, 128, 32, 32),
-            rect!(
-                (-animation_timer + i as f64 * 10.0) * PIXEL_PER_DOT as f64,
-                0,
-                PIXEL_PER_DOT as f64 * 10.0,
-                PIXEL_PER_DOT * 9
-            ),
-        )?;
+    for i in 0..2 {
+        let position = -animation_timer + (i * 10) as f64;
+        Tile::CityLayer1.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
     }
 
     Ok(())
@@ -59,22 +42,14 @@ fn draw_layer_1(
 
 fn draw_layer_2(
     canvas: &mut WindowCanvas,
-    ground: &Texture,
+    texture: &Texture,
     animation_timer: f64,
 ) -> Result<(), String> {
-    let animation_timer = (animation_timer * 5.0) % 16.0;
+    let animation_timer = animation_timer * 5.0 % 16.0;
 
-    for i in 0..2 {
-        canvas.copy(
-            &ground,
-            rect!(128, 160, 64, 32),
-            rect!(
-                (-animation_timer + i as f64 * 16.0) * PIXEL_PER_DOT as f64,
-                PIXEL_PER_DOT * 1,
-                PIXEL_PER_DOT * 16,
-                PIXEL_PER_DOT * 8
-            ),
-        )?;
+    for i in 0..3 {
+        let position = -animation_timer + (i * 16) as f64;
+        Tile::CityLayer2.draw(canvas, texture, (position, 1.0), (16.0, 8.0))?;
     }
 
     Ok(())
@@ -92,38 +67,28 @@ pub fn good_ending(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), S
     }
 
     let texture_creator = canvas.texture_creator();
-    let ground = texture_creator.load_texture(Path::new("assets/ground.png"))?;
+    let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
     'game_loop: loop {
         let delta_time = 1.0 / 60.0;
 
-        //canvas.set_draw_color(Color::RGB(217, 87, 99));
         canvas.set_draw_color(Color::RGB(255, 255, 255));
         canvas.clear();
 
-        draw_layer_0(canvas, &ground, animation_timer)?;
-        draw_layer_1(canvas, &ground, animation_timer)?;
-        draw_layer_2(canvas, &ground, animation_timer)?;
+        draw_layer_0(canvas, &texture, animation_timer)?;
+        draw_layer_1(canvas, &texture, animation_timer)?;
+        draw_layer_2(canvas, &texture, animation_timer)?;
 
-        let x_offset = (animation_timer * PI * 2.0).sin() * f64::from(PIXEL_PER_DOT) * 0.125;
-        let animation_offset = (animation_timer % 0.25 * 4.0).round() * 64.0;
+        let x_offset = (animation_timer % 1.0 * PI * 2.0).sin() * 0.125;
+        let car = if animation_timer % 0.2 < 0.1 {
+            Tile::LemonCar0
+        } else {
+            Tile::LemonCar1
+        };
 
-        canvas.copy(
-            &ground,
-            rect!(animation_offset, 160, 64, 32),
-            rect!(
-                4.0 * (PIXEL_PER_DOT as f64) + x_offset,
-                8 * PIXEL_PER_DOT,
-                PIXEL_PER_DOT * 2,
-                PIXEL_PER_DOT
-            ),
-        )?;
+        car.draw(canvas, &texture, (4.0 + x_offset, 8.0), (2.0, 1.0))?;
 
-        canvas.copy(
-            &ground,
-            rect!(0, 32, 32, 32),
-            rect!(0, PIXEL_PER_DOT * 9, PIXEL_PER_DOT * 10, PIXEL_PER_DOT * 1),
-        )?;
+        Tile::Ground.draw(canvas, &texture, (0.0, 9.0), (10.0, 1.0))?;
 
         canvas.present();
         for event in sdl_context.event_pump()?.poll_iter() {

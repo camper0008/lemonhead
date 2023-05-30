@@ -5,13 +5,14 @@ use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{closest_item_within_distance, draw_item};
+use crate::helper::{closest_item_within_distance, draw_ground, draw_item};
 use crate::state::State;
+use crate::tileset::Tile;
 use crate::{rect, scene::Scene};
 
 use super::Scenes;
 
-const HOUSE_OFFSET: i32 = 5;
+const HOUSE_OFFSET: f64 = 6.0;
 
 #[derive(Default)]
 pub struct Outside {}
@@ -30,81 +31,58 @@ impl Outside {
         animation_timer: f64,
     ) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
-        let door = texture_creator.load_texture(Path::new("assets/door.png"))?;
-        let ground = texture_creator.load_texture(Path::new("assets/ground.png"))?;
+        let tileset = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let ascension = texture_creator.load_texture(Path::new("assets/ascension.png"))?;
 
-        for x in HOUSE_OFFSET..HOUSE_OFFSET + 3 {
-            canvas.copy(
-                &ground,
-                rect!(32, 0, 32, 32),
-                rect!(
-                    x * PIXEL_PER_DOT,
-                    GROUND_LEVEL * PIXEL_PER_DOT,
-                    PIXEL_PER_DOT,
-                    PIXEL_PER_DOT
-                ),
+        for i in 0..=2 {
+            Tile::HouseBrick.draw(
+                canvas,
+                &tileset,
+                (HOUSE_OFFSET + i as f64, GROUND_LEVEL),
+                (1.0, 1.0),
             )?;
+        }
+
+        for x in 0..10 {
+            Tile::Grass.draw(canvas, &tileset, (x as f64, GROUND_LEVEL), (1.0, 1.0))?;
         }
 
         if state.child_dead {
-            canvas.copy(
-                &ground,
-                rect!(96, 96, 32, 32),
-                rect!(PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT),
-            )?;
+            Tile::LemonSun.draw(canvas, &tileset, (1.0, 1.0), (1.0, 1.0))?;
         } else {
-            canvas.copy(
-                &ground,
-                rect!(0, 96, 32, 32),
-                rect!(PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT, PIXEL_PER_DOT),
-            )?;
+            Tile::Sun.draw(canvas, &tileset, (1.0, 1.0), (1.0, 1.0))?;
         }
 
-        canvas.copy(
-            &ground,
-            rect!(96, 0, 32, 32),
-            rect!(
-                HOUSE_OFFSET * PIXEL_PER_DOT,
-                (GROUND_LEVEL - 1) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
+        Tile::LeftTriangle.draw(
+            canvas,
+            &tileset,
+            (HOUSE_OFFSET, GROUND_LEVEL - 1.0),
+            (1.0, 1.0),
+        )?;
+        Tile::Block.draw(
+            canvas,
+            &tileset,
+            (HOUSE_OFFSET + 1.0, GROUND_LEVEL - 1.0),
+            (1.0, 1.0),
+        )?;
+        Tile::RightTriangle.draw(
+            canvas,
+            &tileset,
+            (HOUSE_OFFSET + 2.0, GROUND_LEVEL - 1.0),
+            (1.0, 1.0),
         )?;
 
-        canvas.copy(
-            &ground,
-            rect!(32, 32, 32, 32),
-            rect!(
-                (HOUSE_OFFSET + 1) * PIXEL_PER_DOT,
-                (GROUND_LEVEL - 1) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
+        let door_texture = if state.front_door_opened {
+            Tile::DoorOpen
+        } else {
+            Tile::DoorClosed
+        };
 
-        canvas.copy(
-            &ground,
-            rect!(96, 32, 32, 32),
-            rect!(
-                (HOUSE_OFFSET + 2) * PIXEL_PER_DOT,
-                (GROUND_LEVEL - 1) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
-        )?;
-
-        let door_offset = if state.front_door_opened { 32 } else { 0 };
-
-        canvas.copy(
-            &door,
-            rect!(door_offset, 0, 32, 32),
-            rect!(
-                (HOUSE_OFFSET + 1) * PIXEL_PER_DOT,
-                GROUND_LEVEL * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
-            ),
+        door_texture.draw(
+            canvas,
+            &tileset,
+            (HOUSE_OFFSET + 1.0, GROUND_LEVEL),
+            (1.0, 1.0),
         )?;
 
         let ascension_offset = (animation_timer * 4.0).floor() * 32.0;
@@ -113,54 +91,19 @@ impl Outside {
             canvas.copy(
                 &ascension,
                 rect!(ascension_offset, 0, 32, 128),
-                rect!(3 * PIXEL_PER_DOT, 0, PIXEL_PER_DOT, PIXEL_PER_DOT * 4),
+                rect!(3.0 * PIXEL_PER_DOT, 0, PIXEL_PER_DOT, PIXEL_PER_DOT * 4.0),
             )?;
 
             canvas.copy(
                 &ascension,
                 rect!(ascension_offset, 0, 32, 128),
                 rect!(
-                    3 * PIXEL_PER_DOT,
-                    4 * PIXEL_PER_DOT,
+                    3.0 * PIXEL_PER_DOT,
+                    4.0 * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
-                    PIXEL_PER_DOT * 4
+                    PIXEL_PER_DOT * 4.0
                 ),
             )?;
-        }
-
-        Ok(())
-    }
-
-    fn draw_ground(&self, canvas: &mut WindowCanvas) -> Result<(), String> {
-        let texture_creator = canvas.texture_creator();
-        let ground_texture = texture_creator.load_texture(Path::new("assets/ground.png"))?;
-
-        for x in 0..10 {
-            canvas.copy(
-                &ground_texture,
-                rect!(0, 0, 32, 64),
-                rect!(
-                    x * PIXEL_PER_DOT,
-                    GROUND_LEVEL * PIXEL_PER_DOT,
-                    PIXEL_PER_DOT,
-                    PIXEL_PER_DOT * 2
-                ),
-            )?;
-        }
-
-        for x in 0..10 {
-            for y in (GROUND_LEVEL + 2)..10 {
-                canvas.copy(
-                    &ground_texture,
-                    rect!(32, 32, 32, 32),
-                    rect!(
-                        x * PIXEL_PER_DOT,
-                        y * PIXEL_PER_DOT,
-                        PIXEL_PER_DOT,
-                        PIXEL_PER_DOT
-                    ),
-                )?;
-            }
         }
 
         Ok(())
@@ -170,16 +113,16 @@ impl Outside {
         let mut items = Vec::new();
         if state.front_door_key_picked_up {
             items.push((
-                f64::from(PIXEL_PER_DOT * (HOUSE_OFFSET + 1)),
+                f64::from(PIXEL_PER_DOT * (HOUSE_OFFSET + 1.0)),
                 Interactables::Door,
             ));
         }
         if !state.front_door_key_picked_up {
-            items.push((f64::from(PIXEL_PER_DOT * 3), Interactables::Key));
+            items.push((f64::from(PIXEL_PER_DOT * 3.0), Interactables::Key));
         }
 
         if state.child_dead && !state.ascended {
-            items.push((f64::from(PIXEL_PER_DOT * 3), Interactables::Ascension));
+            items.push((f64::from(PIXEL_PER_DOT * 3.0), Interactables::Ascension));
         }
 
         items
@@ -200,9 +143,9 @@ impl Scene for Outside {
         }
         canvas.clear();
         self.draw_house(canvas, state, animation_timer)?;
-        self.draw_ground(canvas)?;
+        draw_ground(canvas)?;
         if !state.front_door_key_picked_up {
-            draw_item(canvas, 3, "assets/key.png", animation_timer)?;
+            draw_item(canvas, 3.0, "assets/key.png", animation_timer)?;
         }
         Ok(())
     }
