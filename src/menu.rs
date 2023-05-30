@@ -19,12 +19,7 @@ pub fn main_menu(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), Str
     'game_loop: loop {
         let delta_time = 1.0 / 60.0;
 
-        let offset = 2.0 * (animation_timer - 0.5f64).abs();
-        canvas.set_draw_color(Color::RGB(
-            217 - (offset * 0.0) as u8,
-            87 - (offset * 20.0) as u8,
-            99 - (offset * 20.0) as u8,
-        ));
+        canvas.set_draw_color(Color::RGB(217, 87, 99));
         canvas.clear();
         let texture_creator = canvas.texture_creator();
         let logo = texture_creator.load_texture(Path::new("assets/logo.png"))?;

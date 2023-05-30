@@ -83,9 +83,10 @@ fn draw_layer_2(
 pub fn good_ending(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
     let mut animation_timer = 0.0;
 
-    let music_effect_sender = audio_thread();
+    let music_sender = audio_thread();
+
     for _ in 0..500 {
-        music_effect_sender
+        music_sender
             .send(AudioConfiguration::Play(1.0, "assets/rich.ogg"))
             .unwrap();
     }
@@ -96,12 +97,8 @@ pub fn good_ending(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), S
     'game_loop: loop {
         let delta_time = 1.0 / 60.0;
 
-        let offset = 2.0 * ((animation_timer % 1.0) - 0.5f64).abs();
-        canvas.set_draw_color(Color::RGB(
-            150 - (offset * 20.0) as u8,
-            150 - (offset * 20.0) as u8,
-            217 - (offset * 20.0) as u8,
-        ));
+        //canvas.set_draw_color(Color::RGB(217, 87, 99));
+        canvas.set_draw_color(Color::RGB(255, 255, 255));
         canvas.clear();
 
         draw_layer_0(canvas, &ground, animation_timer)?;
