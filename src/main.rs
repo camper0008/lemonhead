@@ -1,6 +1,7 @@
 mod actor;
 mod audio;
 mod globals;
+mod good_ending;
 mod helper;
 mod menu;
 mod scene;
@@ -9,6 +10,7 @@ mod state;
 
 use actor::Actor;
 use audio::audio_thread;
+use good_ending::good_ending;
 use helper::draw_interact_prompt;
 use menu::main_menu;
 use scenes::child_room::ChildRoom;
@@ -53,7 +55,7 @@ pub fn prepare_canvas(window: Window) -> Result<WindowCanvas, String> {
         .map_err(|e| e.to_string())
 }
 
-pub fn run(sdl_context: Sdl, mut canvas: WindowCanvas) -> Result<(), String> {
+pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
     let mut keys_down = HashMap::new();
 
     let sound_effect_sender = audio_thread();
@@ -81,10 +83,10 @@ pub fn run(sdl_context: Sdl, mut canvas: WindowCanvas) -> Result<(), String> {
     'game_loop: loop {
         let delta_time = 1.0 / 60.0;
         canvas.clear();
-        scene.draw_scenery(&state, &mut canvas, animation_timer)?;
+        scene.draw_scenery(&state, canvas, animation_timer)?;
         let should_draw_interact = scene.should_draw_interact_popup(&state, lemonhead.x());
         if should_draw_interact {
-            draw_interact_prompt(&mut canvas, &state, animation_timer)?;
+            draw_interact_prompt(canvas, &state, animation_timer)?;
         }
 
         lemonhead.idle();
@@ -105,7 +107,7 @@ pub fn run(sdl_context: Sdl, mut canvas: WindowCanvas) -> Result<(), String> {
             lemonhead.offset_position(0.0, -PIXEL_PER_DOT as f64 / 4.0, delta_time)
         }
 
-        lemonhead.draw(&mut canvas, animation_timer);
+        lemonhead.draw(canvas, animation_timer);
         canvas.present();
         for event in sdl_context.event_pump()?.poll_iter() {
             match event {
@@ -166,5 +168,8 @@ fn main() -> Result<(), String> {
     let mut canvas = prepare_canvas(window)?;
 
     main_menu(&sdl_context, &mut canvas)?;
-    run(sdl_context, canvas)
+    run(&sdl_context, &mut canvas)?;
+    good_ending(&sdl_context, &mut canvas)?;
+
+    Ok(())
 }
