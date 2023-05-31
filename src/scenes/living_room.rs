@@ -31,7 +31,7 @@ impl LivingRoom {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
-        draw_wallpaper(canvas, &texture, Tile::StripeWallpaper)?;
+        draw_wallpaper(canvas, &texture, &Tile::StripeWallpaper)?;
 
         Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
@@ -40,10 +40,10 @@ impl LivingRoom {
         Tile::Couch.draw(canvas, &texture, (6.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         if !state.coin_7 {
-            draw_item(canvas, &texture, Tile::Coin, 3.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Coin, 3.0, animation_timer)?;
         }
         if !state.coin_8 {
-            draw_item(canvas, &texture, Tile::Coin, 8.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Coin, 8.0, animation_timer)?;
         }
 
         Ok(())
@@ -64,9 +64,8 @@ impl LivingRoom {
 
         let mut dad = Actor::new("assets/dad.png");
         dad.set_position(
-            PIXEL_PER_DOT as f64 * 14.0
-                - (state.confronting_animation_timer * 2.0 * PIXEL_PER_DOT as f64),
-            (PIXEL_PER_DOT * GROUND_LEVEL).into(),
+            PIXEL_PER_DOT * 14.0 - (state.confronting_animation_timer * 2.0 * PIXEL_PER_DOT),
+            PIXEL_PER_DOT * GROUND_LEVEL,
         );
         dad.run_left();
         dad.draw(canvas, animation_timer);
@@ -87,14 +86,14 @@ impl LivingRoom {
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
         if !state.coin_7 {
-            items.push((f64::from(PIXEL_PER_DOT * 3.0), Interactables::Coin7));
+            items.push(((PIXEL_PER_DOT * 3.0), Interactables::Coin7));
         }
         if !state.coin_8 {
-            items.push((f64::from(PIXEL_PER_DOT * 8.0), Interactables::Coin8));
+            items.push(((PIXEL_PER_DOT * 8.0), Interactables::Coin8));
         }
 
         if state.coin_7 && state.coin_8 {
-            items.push((f64::from(PIXEL_PER_DOT), Interactables::ExitDoor));
+            items.push((PIXEL_PER_DOT, Interactables::ExitDoor));
         }
 
         items

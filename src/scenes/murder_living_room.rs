@@ -24,7 +24,7 @@ impl MurderLivingRoom {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
-        draw_wallpaper(canvas, &texture, Tile::StripeWallpaper)?;
+        draw_wallpaper(canvas, &texture, &Tile::StripeWallpaper)?;
 
         Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
@@ -102,10 +102,10 @@ impl MurderLivingRoom {
 
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
-        items.push((f64::from(PIXEL_PER_DOT * 5.0), Interactables::Dad));
+        items.push(((PIXEL_PER_DOT * 5.0), Interactables::Dad));
 
         if state.dad_dead {
-            items.push((f64::from(PIXEL_PER_DOT), Interactables::ExitDoor));
+            items.push((PIXEL_PER_DOT, Interactables::ExitDoor));
         }
 
         items

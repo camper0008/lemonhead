@@ -1,4 +1,4 @@
-pub enum AudioConfiguration {
+pub enum Configuration {
     Play(f32, &'static str),
     Stop,
 }
@@ -12,9 +12,8 @@ use std::{
 
 use rodio::{Decoder, Sink};
 
-pub fn audio_thread() -> Sender<AudioConfiguration> {
-    let (sender, receiver): (Sender<AudioConfiguration>, Receiver<AudioConfiguration>) =
-        mpsc::channel();
+pub fn audio_thread() -> Sender<Configuration> {
+    let (sender, receiver): (Sender<Configuration>, Receiver<Configuration>) = mpsc::channel();
 
     thread::spawn(move || {
         let Ok((_stream, stream_handle)) = rodio::OutputStream::try_default() else {
@@ -27,11 +26,11 @@ pub fn audio_thread() -> Sender<AudioConfiguration> {
                 break;
             };
             let (volume, path) = match config {
-                AudioConfiguration::Stop => {
+                Configuration::Stop => {
                     sink.stop();
                     continue;
                 }
-                AudioConfiguration::Play(volume, path) => (volume, path),
+                Configuration::Play(volume, path) => (volume, path),
             };
             sink.set_volume(volume);
             let file = BufReader::new(

@@ -69,9 +69,7 @@ impl Tile {
 
     fn size(&self) -> (u32, u32) {
         match self {
-            Tile::CityLayer2 => (64, 32),
-            Tile::LemonCar0 => (64, 32),
-            Tile::LemonCar1 => (64, 32),
+            Tile::CityLayer2 | Tile::LemonCar0 | Tile::LemonCar1 => (64, 32),
             _ => (32, 32),
         }
     }

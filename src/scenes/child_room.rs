@@ -24,7 +24,7 @@ impl ChildRoom {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
-        draw_wallpaper(canvas, &texture, Tile::DotWallpaper)?;
+        draw_wallpaper(canvas, &texture, &Tile::DotWallpaper)?;
         Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         Tile::ChildPoster.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
@@ -107,11 +107,11 @@ impl ChildRoom {
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
         if state.child_stabs < 3 {
-            items.push((f64::from(PIXEL_PER_DOT * 5.0), Interactables::Child));
+            items.push(((PIXEL_PER_DOT * 5.0), Interactables::Child));
         }
 
         if state.child_dead {
-            items.push((f64::from(PIXEL_PER_DOT), Interactables::ExitDoor));
+            items.push((PIXEL_PER_DOT, Interactables::ExitDoor));
         }
 
         items

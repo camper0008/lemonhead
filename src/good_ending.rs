@@ -6,7 +6,7 @@ use sdl2::{
 };
 
 use crate::{
-    audio::{audio_thread, AudioConfiguration},
+    audio::{audio_thread, Configuration},
     tileset::Tile,
 };
 
@@ -18,7 +18,7 @@ fn draw_layer_0(
     let animation_timer = animation_timer % 10.0;
 
     for i in 0..2 {
-        let position = -animation_timer + (i * 10) as f64;
+        let position = -animation_timer + f64::from(i * 10);
         Tile::CityLayer0.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
     }
 
@@ -33,7 +33,7 @@ fn draw_layer_1(
     let animation_timer = (animation_timer * 2.5) % 10.0;
 
     for i in 0..2 {
-        let position = -animation_timer + (i * 10) as f64;
+        let position = -animation_timer + f64::from(i * 10);
         Tile::CityLayer1.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
     }
 
@@ -48,7 +48,7 @@ fn draw_layer_2(
     let animation_timer = animation_timer * 5.0 % 16.0;
 
     for i in 0..3 {
-        let position = -animation_timer + (i * 16) as f64;
+        let position = -animation_timer + f64::from(i * 16);
         Tile::CityLayer2.draw(canvas, texture, (position, 1.0), (16.0, 8.0))?;
     }
 
@@ -62,7 +62,7 @@ pub fn good_ending(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), S
 
     for _ in 0..500 {
         music_sender
-            .send(AudioConfiguration::Play(1.0, "assets/rich.ogg"))
+            .send(Configuration::Play(1.0, "assets/rich.ogg"))
             .unwrap();
     }
 

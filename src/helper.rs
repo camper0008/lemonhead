@@ -19,7 +19,7 @@ macro_rules! rect(
 pub fn draw_item(
     canvas: &mut WindowCanvas,
     texture: &Texture,
-    tile: Tile,
+    tile: &Tile,
     position: f64,
     animation_timer: f64,
 ) -> Result<(), String> {
@@ -43,7 +43,7 @@ pub fn closest_item_within_distance<T>(items: Vec<(f64, T)>, position: f64) -> O
     items
         .into_iter()
         .map(|(dist, item)| ((dist - position).abs(), item))
-        .filter(|(dist, _)| dist < &f64::from(PIXEL_PER_DOT / 2.0))
+        .filter(|(dist, _)| dist < &(PIXEL_PER_DOT / 2.0))
         .min_by(|x, y| (x.0).total_cmp(&y.0))
         .map(|(_dist, item)| item)
 }
@@ -56,7 +56,7 @@ pub fn draw_interact_prompt(
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator.load_texture(Path::new("assets/text.png"))?;
 
-    let offset = (animation_timer * PI * 2.0).sin() * f64::from(PIXEL_PER_DOT) * 0.05;
+    let offset = (animation_timer * PI * 2.0).sin() * PIXEL_PER_DOT * 0.05;
 
     let x_size = if state.confronted && !state.dad_dead {
         2.0
@@ -82,7 +82,7 @@ pub fn draw_interact_prompt(
         2
     };
 
-    let x_position = 5.5 - x_size as f64;
+    let x_position = 5.5 - x_size;
 
     canvas.copy(
         &texture,
@@ -113,14 +113,14 @@ pub fn draw_ground(canvas: &mut WindowCanvas) -> Result<(), String> {
     Ok(())
 }
 
-pub fn draw_wallpaper<'a>(
+pub fn draw_wallpaper(
     canvas: &mut WindowCanvas,
-    texture: &Texture<'a>,
-    tile: Tile,
+    texture: &Texture,
+    tile: &Tile,
 ) -> Result<(), String> {
     for x in 0..10 {
-        for y in 0..=GROUND_LEVEL as usize {
-            tile.draw(canvas, texture, (x as f64, y as f64), (1.0, 1.0))?;
+        for y in 0..=GROUND_LEVEL as u32 {
+            tile.draw(canvas, texture, (f64::from(x), f64::from(y)), (1.0, 1.0))?;
         }
     }
 

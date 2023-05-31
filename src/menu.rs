@@ -7,7 +7,7 @@ use sdl2::{
 
 use crate::{
     actor::Actor,
-    audio::{audio_thread, AudioConfiguration},
+    audio::{audio_thread, Configuration},
     globals::PIXEL_PER_DOT,
     rect,
     tileset::Tile,
@@ -20,7 +20,7 @@ pub fn main_menu(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), Str
 
     for _ in 0..500 {
         music_sender
-            .send(AudioConfiguration::Play(1.0, "assets/lemonhead.ogg"))
+            .send(Configuration::Play(1.0, "assets/lemonhead.ogg"))
             .unwrap();
     }
 
@@ -57,13 +57,13 @@ pub fn main_menu(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), Str
         lemonhead.draw(canvas, animation_timer * 2.0);
         dad.draw(canvas, animation_timer * 2.0);
 
-        let offset = (animation_timer * PI * 2.0).sin() * f64::from(PIXEL_PER_DOT) * 0.125;
+        let offset = (animation_timer * PI * 2.0).sin() * PIXEL_PER_DOT * 0.125;
         canvas.copy(
             &logo,
             rect!(0, 0, 32 * 10, 32 * 10),
             rect!(
-                1.0 * (PIXEL_PER_DOT as f64),
-                1.0 * (PIXEL_PER_DOT as f64) + offset,
+                1.0 * PIXEL_PER_DOT,
+                1.0 * PIXEL_PER_DOT + offset,
                 PIXEL_PER_DOT * 8.0,
                 PIXEL_PER_DOT * 8.0
             ),

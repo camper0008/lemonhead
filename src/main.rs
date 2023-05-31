@@ -74,10 +74,7 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
     let mut scene: &dyn Scene = &outside;
     let mut state = State::new(sound_effect_sender, music_effect_sender);
     let mut lemonhead = Actor::new("assets/lemonhead.png");
-    lemonhead.set_position(
-        f64::from(PIXEL_PER_DOT),
-        (PIXEL_PER_DOT * GROUND_LEVEL).into(),
-    );
+    lemonhead.set_position(PIXEL_PER_DOT, PIXEL_PER_DOT * GROUND_LEVEL);
 
     state.change_background_track("assets/outside.ogg");
 
@@ -92,11 +89,11 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
 
         lemonhead.idle();
         if *keys_down.get(&Keycode::A).unwrap_or(&false) && !state.ascended {
-            lemonhead.offset_position(f64::from(PIXEL_PER_DOT) * -1.25, 0.0, delta_time);
+            lemonhead.offset_position(PIXEL_PER_DOT * -1.25, 0.0, delta_time);
             lemonhead.run_left();
         }
         if *keys_down.get(&Keycode::D).unwrap_or(&false) && !state.ascended {
-            lemonhead.offset_position(f64::from(PIXEL_PER_DOT) * 1.25, 0.0, delta_time);
+            lemonhead.offset_position(PIXEL_PER_DOT * 1.25, 0.0, delta_time);
             lemonhead.run_right();
         }
         if *keys_down.get(&Keycode::Space).unwrap_or(&false) {
@@ -105,7 +102,7 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
         }
 
         if state.ascended {
-            lemonhead.offset_position(0.0, -PIXEL_PER_DOT as f64 / 4.0, delta_time)
+            lemonhead.offset_position(0.0, -PIXEL_PER_DOT / 4.0, delta_time);
         }
 
         lemonhead.draw(canvas, animation_timer);
@@ -143,10 +140,7 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
                     scenes::Scenes::MurderLivingRoom => scene = &murder_living_room,
                     scenes::Scenes::ChildRoom => scene = &child_room,
                 };
-                lemonhead.set_position(
-                    f64::from(PIXEL_PER_DOT) * position,
-                    (PIXEL_PER_DOT * GROUND_LEVEL).into(),
-                );
+                lemonhead.set_position(PIXEL_PER_DOT * position, PIXEL_PER_DOT * GROUND_LEVEL);
                 state.scene_changed = None;
             }
         }

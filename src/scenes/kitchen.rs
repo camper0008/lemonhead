@@ -34,7 +34,7 @@ impl Kitchen {
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
 
-        draw_wallpaper(canvas, &texture, Tile::KitchenBrick)?;
+        draw_wallpaper(canvas, &texture, &Tile::KitchenBrick)?;
 
         Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
@@ -81,16 +81,16 @@ impl Kitchen {
         }
 
         if !state.coin_4 {
-            draw_item(canvas, &texture, Tile::Coin, 3.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Coin, 3.0, animation_timer)?;
         }
         if !state.coin_5 {
-            draw_item(canvas, &texture, Tile::Coin, 4.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Coin, 4.0, animation_timer)?;
         }
         if !state.coin_6 {
-            draw_item(canvas, &texture, Tile::Coin, 5.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Coin, 5.0, animation_timer)?;
         }
         if !state.weapon_picked_up {
-            draw_item(canvas, &texture, Tile::Weapon, 6.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Weapon, 6.0, animation_timer)?;
         }
 
         Ok(())
@@ -99,26 +99,23 @@ impl Kitchen {
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
 
-        items.push((f64::from(PIXEL_PER_DOT), Interactables::ExitDoor));
+        items.push((PIXEL_PER_DOT, Interactables::ExitDoor));
         if !state.coin_4 {
-            items.push((f64::from(PIXEL_PER_DOT * 3.0), Interactables::Coin4));
+            items.push(((PIXEL_PER_DOT * 3.0), Interactables::Coin4));
         }
         if !state.coin_5 {
-            items.push((f64::from(PIXEL_PER_DOT * 4.0), Interactables::Coin5));
+            items.push(((PIXEL_PER_DOT * 4.0), Interactables::Coin5));
         }
         if !state.coin_6 {
-            items.push((f64::from(PIXEL_PER_DOT * 5.0), Interactables::Coin6));
+            items.push(((PIXEL_PER_DOT * 5.0), Interactables::Coin6));
         }
 
         if state.coin_4 && state.coin_5 && state.coin_6 {
-            items.push((
-                f64::from(PIXEL_PER_DOT * 8.0),
-                Interactables::LivingRoomDoor,
-            ));
+            items.push(((PIXEL_PER_DOT * 8.0), Interactables::LivingRoomDoor));
         }
 
         if state.confronted && !state.weapon_picked_up {
-            items.push((f64::from(PIXEL_PER_DOT * 6.0), Interactables::Weapon));
+            items.push(((PIXEL_PER_DOT * 6.0), Interactables::Weapon));
         }
 
         items

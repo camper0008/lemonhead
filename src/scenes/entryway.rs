@@ -35,7 +35,7 @@ impl Entryway {
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
 
-        draw_wallpaper(canvas, &texture, Tile::StripeWallpaper)?;
+        draw_wallpaper(canvas, &texture, &Tile::StripeWallpaper)?;
         Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         let picture_tile = if state.child_dead {
@@ -95,16 +95,16 @@ impl Entryway {
         }
 
         if !state.coin_0 {
-            draw_item(canvas, &texture, Tile::Coin, 3.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Coin, 3.0, animation_timer)?;
         }
         if !state.coin_1 {
-            draw_item(canvas, &texture, Tile::Coin, 4.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Coin, 4.0, animation_timer)?;
         }
         if !state.coin_2 {
-            draw_item(canvas, &texture, Tile::Coin, 5.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Coin, 5.0, animation_timer)?;
         }
         if !state.coin_3 {
-            draw_item(canvas, &texture, Tile::Coin, 6.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Coin, 6.0, animation_timer)?;
         }
 
         Ok(())
@@ -112,25 +112,25 @@ impl Entryway {
 
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
-        items.push((f64::from(PIXEL_PER_DOT), Interactables::ExitDoor));
+        items.push((PIXEL_PER_DOT, Interactables::ExitDoor));
         if !state.coin_0 {
-            items.push((f64::from(PIXEL_PER_DOT * 3.), Interactables::Coin0));
+            items.push(((PIXEL_PER_DOT * 3.), Interactables::Coin0));
         }
         if !state.coin_1 {
-            items.push((f64::from(PIXEL_PER_DOT * 4.), Interactables::Coin1));
+            items.push(((PIXEL_PER_DOT * 4.), Interactables::Coin1));
         }
         if !state.coin_2 {
-            items.push((f64::from(PIXEL_PER_DOT * 5.), Interactables::Coin2));
+            items.push(((PIXEL_PER_DOT * 5.), Interactables::Coin2));
         }
         if !state.coin_3 {
-            items.push((f64::from(PIXEL_PER_DOT * 6.), Interactables::Coin3));
+            items.push(((PIXEL_PER_DOT * 6.), Interactables::Coin3));
         }
         if state.coin_0 && state.coin_1 && state.coin_2 && state.coin_3 {
-            items.push((f64::from(PIXEL_PER_DOT * 8.), Interactables::KitchenDoor));
+            items.push(((PIXEL_PER_DOT * 8.), Interactables::KitchenDoor));
         }
 
         if state.dad_dead {
-            items.push((f64::from(PIXEL_PER_DOT * 4.), Interactables::ChildDoor));
+            items.push(((PIXEL_PER_DOT * 4.), Interactables::ChildDoor));
         }
 
         items

@@ -38,13 +38,13 @@ impl Outside {
             Tile::HouseBrick.draw(
                 canvas,
                 &texture,
-                (HOUSE_OFFSET + i as f64, GROUND_LEVEL),
+                (HOUSE_OFFSET + f64::from(i), GROUND_LEVEL),
                 (1.0, 1.0),
             )?;
         }
 
         for x in 0..10 {
-            Tile::Grass.draw(canvas, &texture, (x as f64, GROUND_LEVEL), (1.0, 1.0))?;
+            Tile::Grass.draw(canvas, &texture, (f64::from(x), GROUND_LEVEL), (1.0, 1.0))?;
         }
 
         if state.child_dead {
@@ -107,7 +107,7 @@ impl Outside {
         }
 
         if !state.front_door_key_picked_up {
-            draw_item(canvas, &texture, Tile::Key, 3.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Key, 3.0, animation_timer)?;
         }
 
         Ok(())
@@ -116,17 +116,14 @@ impl Outside {
     fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
         let mut items = Vec::new();
         if state.front_door_key_picked_up {
-            items.push((
-                f64::from(PIXEL_PER_DOT * (HOUSE_OFFSET + 1.0)),
-                Interactables::Door,
-            ));
+            items.push(((PIXEL_PER_DOT * (HOUSE_OFFSET + 1.0)), Interactables::Door));
         }
         if !state.front_door_key_picked_up {
-            items.push((f64::from(PIXEL_PER_DOT * 3.0), Interactables::Key));
+            items.push(((PIXEL_PER_DOT * 3.0), Interactables::Key));
         }
 
         if state.child_dead && !state.ascended {
-            items.push((f64::from(PIXEL_PER_DOT * 3.0), Interactables::Ascension));
+            items.push(((PIXEL_PER_DOT * 3.0), Interactables::Ascension));
         }
 
         items
