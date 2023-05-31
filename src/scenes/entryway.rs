@@ -25,7 +25,12 @@ enum Interactables {
 }
 
 impl Entryway {
-    fn draw_house(&self, canvas: &mut WindowCanvas, state: &State) -> Result<(), String> {
+    fn draw_house(
+        &self,
+        canvas: &mut WindowCanvas,
+        state: &State,
+        animation_timer: f64,
+    ) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
@@ -89,6 +94,19 @@ impl Entryway {
             )?;
         }
 
+        if !state.coin_0 {
+            draw_item(canvas, &texture, Tile::Coin, 3.0, animation_timer)?;
+        }
+        if !state.coin_1 {
+            draw_item(canvas, &texture, Tile::Coin, 4.0, animation_timer)?;
+        }
+        if !state.coin_2 {
+            draw_item(canvas, &texture, Tile::Coin, 5.0, animation_timer)?;
+        }
+        if !state.coin_3 {
+            draw_item(canvas, &texture, Tile::Coin, 6.0, animation_timer)?;
+        }
+
         Ok(())
     }
 
@@ -127,20 +145,8 @@ impl Scene for Entryway {
         animation_timer: f64,
     ) -> Result<(), String> {
         canvas.clear();
-        self.draw_house(canvas, state)?;
+        self.draw_house(canvas, state, animation_timer)?;
         draw_ground(canvas)?;
-        if !state.coin_0 {
-            draw_item(canvas, 3.0, "assets/coin.png", animation_timer)?;
-        }
-        if !state.coin_1 {
-            draw_item(canvas, 4.0, "assets/coin.png", animation_timer)?;
-        }
-        if !state.coin_2 {
-            draw_item(canvas, 5.0, "assets/coin.png", animation_timer)?;
-        }
-        if !state.coin_3 {
-            draw_item(canvas, 6.0, "assets/coin.png", animation_timer)?;
-        }
         Ok(())
     }
 

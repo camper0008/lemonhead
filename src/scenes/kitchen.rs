@@ -24,7 +24,12 @@ enum Interactables {
 }
 
 impl Kitchen {
-    fn draw_house(&self, canvas: &mut WindowCanvas, state: &State) -> Result<(), String> {
+    fn draw_house(
+        &self,
+        canvas: &mut WindowCanvas,
+        state: &State,
+        animation_timer: f64,
+    ) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
@@ -75,6 +80,19 @@ impl Kitchen {
             )?;
         }
 
+        if !state.coin_4 {
+            draw_item(canvas, &texture, Tile::Coin, 3.0, animation_timer)?;
+        }
+        if !state.coin_5 {
+            draw_item(canvas, &texture, Tile::Coin, 4.0, animation_timer)?;
+        }
+        if !state.coin_6 {
+            draw_item(canvas, &texture, Tile::Coin, 5.0, animation_timer)?;
+        }
+        if !state.weapon_picked_up {
+            draw_item(canvas, &texture, Tile::Weapon, 6.0, animation_timer)?;
+        }
+
         Ok(())
     }
 
@@ -86,18 +104,21 @@ impl Kitchen {
             items.push((f64::from(PIXEL_PER_DOT * 3.0), Interactables::Coin4));
         }
         if !state.coin_5 {
-            items.push((f64::from(PIXEL_PER_DOT * 4.), Interactables::Coin5));
+            items.push((f64::from(PIXEL_PER_DOT * 4.0), Interactables::Coin5));
         }
         if !state.coin_6 {
-            items.push((f64::from(PIXEL_PER_DOT * 5.), Interactables::Coin6));
+            items.push((f64::from(PIXEL_PER_DOT * 5.0), Interactables::Coin6));
         }
 
         if state.coin_4 && state.coin_5 && state.coin_6 {
-            items.push((f64::from(PIXEL_PER_DOT * 8.), Interactables::LivingRoomDoor));
+            items.push((
+                f64::from(PIXEL_PER_DOT * 8.0),
+                Interactables::LivingRoomDoor,
+            ));
         }
 
         if state.confronted && !state.weapon_picked_up {
-            items.push((f64::from(PIXEL_PER_DOT * 6.), Interactables::Weapon));
+            items.push((f64::from(PIXEL_PER_DOT * 6.0), Interactables::Weapon));
         }
 
         items
@@ -112,20 +133,8 @@ impl Scene for Kitchen {
         animation_timer: f64,
     ) -> Result<(), String> {
         canvas.clear();
-        self.draw_house(canvas, state)?;
+        self.draw_house(canvas, state, animation_timer)?;
         draw_ground(canvas)?;
-        if !state.coin_4 {
-            draw_item(canvas, 3.0, "assets/coin.png", animation_timer)?;
-        }
-        if !state.coin_5 {
-            draw_item(canvas, 4.0, "assets/coin.png", animation_timer)?;
-        }
-        if !state.coin_6 {
-            draw_item(canvas, 5.0, "assets/coin.png", animation_timer)?;
-        }
-        if !state.weapon_picked_up {
-            draw_item(canvas, 6.0, "assets/weapon.png", animation_timer)?;
-        }
         Ok(())
     }
 

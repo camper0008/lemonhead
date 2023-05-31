@@ -18,25 +18,20 @@ macro_rules! rect(
 
 pub fn draw_item(
     canvas: &mut WindowCanvas,
+    texture: &Texture,
+    tile: Tile,
     position: f64,
-    path: &'static str,
     animation_timer: f64,
 ) -> Result<(), String> {
-    let texture_creator = canvas.texture_creator();
-    let item_texture = texture_creator.load_texture(Path::new(path))?;
+    let offset = (animation_timer * PI * 2.0).sin() * 0.125;
 
-    let offset = (animation_timer * PI * 2.0).sin() * f64::from(PIXEL_PER_DOT) * 0.125;
-
-    canvas.copy(
-        &item_texture,
-        rect!(0, 0, 32, 32),
-        rect!(
-            position * PIXEL_PER_DOT,
-            GROUND_LEVEL * PIXEL_PER_DOT + offset,
-            PIXEL_PER_DOT,
-            PIXEL_PER_DOT
-        ),
+    tile.draw(
+        canvas,
+        texture,
+        (position, GROUND_LEVEL + offset),
+        (1.0, 1.0),
     )?;
+
     Ok(())
 }
 

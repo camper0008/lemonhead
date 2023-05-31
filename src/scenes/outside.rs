@@ -31,43 +31,43 @@ impl Outside {
         animation_timer: f64,
     ) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
-        let tileset = texture_creator.load_texture(Path::new("assets/tile.png"))?;
+        let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let ascension = texture_creator.load_texture(Path::new("assets/ascension.png"))?;
 
         for i in 0..=2 {
             Tile::HouseBrick.draw(
                 canvas,
-                &tileset,
+                &texture,
                 (HOUSE_OFFSET + i as f64, GROUND_LEVEL),
                 (1.0, 1.0),
             )?;
         }
 
         for x in 0..10 {
-            Tile::Grass.draw(canvas, &tileset, (x as f64, GROUND_LEVEL), (1.0, 1.0))?;
+            Tile::Grass.draw(canvas, &texture, (x as f64, GROUND_LEVEL), (1.0, 1.0))?;
         }
 
         if state.child_dead {
-            Tile::LemonSun.draw(canvas, &tileset, (1.0, 1.0), (1.0, 1.0))?;
+            Tile::LemonSun.draw(canvas, &texture, (1.0, 1.0), (1.0, 1.0))?;
         } else {
-            Tile::Sun.draw(canvas, &tileset, (1.0, 1.0), (1.0, 1.0))?;
+            Tile::Sun.draw(canvas, &texture, (1.0, 1.0), (1.0, 1.0))?;
         }
 
         Tile::LeftTriangle.draw(
             canvas,
-            &tileset,
+            &texture,
             (HOUSE_OFFSET, GROUND_LEVEL - 1.0),
             (1.0, 1.0),
         )?;
         Tile::Block.draw(
             canvas,
-            &tileset,
+            &texture,
             (HOUSE_OFFSET + 1.0, GROUND_LEVEL - 1.0),
             (1.0, 1.0),
         )?;
         Tile::RightTriangle.draw(
             canvas,
-            &tileset,
+            &texture,
             (HOUSE_OFFSET + 2.0, GROUND_LEVEL - 1.0),
             (1.0, 1.0),
         )?;
@@ -80,7 +80,7 @@ impl Outside {
 
         door_texture.draw(
             canvas,
-            &tileset,
+            &texture,
             (HOUSE_OFFSET + 1.0, GROUND_LEVEL),
             (1.0, 1.0),
         )?;
@@ -104,6 +104,10 @@ impl Outside {
                     PIXEL_PER_DOT * 4.0
                 ),
             )?;
+        }
+
+        if !state.front_door_key_picked_up {
+            draw_item(canvas, &texture, Tile::Key, 3.0, animation_timer)?;
         }
 
         Ok(())
@@ -144,9 +148,7 @@ impl Scene for Outside {
         canvas.clear();
         self.draw_house(canvas, state, animation_timer)?;
         draw_ground(canvas)?;
-        if !state.front_door_key_picked_up {
-            draw_item(canvas, 3.0, "assets/key.png", animation_timer)?;
-        }
+
         Ok(())
     }
 

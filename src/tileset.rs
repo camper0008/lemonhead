@@ -35,6 +35,9 @@ pub enum Tile {
     CityLayer2,
     LemonCar0,
     LemonCar1,
+    Weapon,
+    Coin,
+    Key,
 }
 
 impl Tile {
@@ -104,6 +107,9 @@ impl Tile {
             Tile::LemonCar0 => (0, 5),
             Tile::LemonCar1 => (2, 5),
             Tile::OfficeChair => (4, 1),
+            Tile::Weapon => (5, 3),
+            Tile::Coin => (5, 2),
+            Tile::Key => (2, 1),
         }
     }
 }

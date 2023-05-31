@@ -22,7 +22,12 @@ enum Interactables {
 }
 
 impl LivingRoom {
-    fn draw_house(&self, canvas: &mut WindowCanvas) -> Result<(), String> {
+    fn draw_house(
+        &self,
+        canvas: &mut WindowCanvas,
+        state: &State,
+        animation_timer: f64,
+    ) -> Result<(), String> {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
@@ -33,6 +38,13 @@ impl LivingRoom {
         Tile::TreeDayPicture.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
         Tile::HousePicture.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
         Tile::Couch.draw(canvas, &texture, (6.0, GROUND_LEVEL), (1.0, 1.0))?;
+
+        if !state.coin_7 {
+            draw_item(canvas, &texture, Tile::Coin, 3.0, animation_timer)?;
+        }
+        if !state.coin_8 {
+            draw_item(canvas, &texture, Tile::Coin, 8.0, animation_timer)?;
+        }
 
         Ok(())
     }
@@ -97,15 +109,9 @@ impl Scene for LivingRoom {
         animation_timer: f64,
     ) -> Result<(), String> {
         canvas.clear();
-        self.draw_house(canvas)?;
+        self.draw_house(canvas, state, animation_timer)?;
         draw_ground(canvas)?;
         self.draw_confrontation(canvas, state, animation_timer)?;
-        if !state.coin_7 {
-            draw_item(canvas, 3.0, "assets/coin.png", animation_timer)?;
-        }
-        if !state.coin_8 {
-            draw_item(canvas, 8.0, "assets/coin.png", animation_timer)?;
-        }
         Ok(())
     }
 
