@@ -68,7 +68,7 @@ impl LivingRoom {
             PIXEL_PER_DOT * GROUND_LEVEL,
         );
         dad.run_left();
-        dad.draw(canvas, animation_timer);
+        dad.draw(canvas, animation_timer)?;
         canvas.copy(
             &bubble,
             rect!(offset, 0, 32, 32),

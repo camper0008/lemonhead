@@ -21,7 +21,7 @@ pub fn main_menu(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), Str
     for _ in 0..500 {
         music_sender
             .send(Configuration::Play(1.0, "assets/lemonhead.ogg"))
-            .unwrap();
+            .map_err(|e| e.to_string())?;
     }
 
     let texture_creator = canvas.texture_creator();
@@ -54,8 +54,8 @@ pub fn main_menu(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), Str
             (npc_offset + dad_offset) * PIXEL_PER_DOT,
             8.0 * PIXEL_PER_DOT,
         );
-        lemonhead.draw(canvas, animation_timer * 2.0);
-        dad.draw(canvas, animation_timer * 2.0);
+        lemonhead.draw(canvas, animation_timer * 2.0)?;
+        dad.draw(canvas, animation_timer * 2.0)?;
 
         let offset = (animation_timer * PI * 2.0).sin() * PIXEL_PER_DOT * 0.125;
         canvas.copy(

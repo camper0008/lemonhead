@@ -1,3 +1,4 @@
+#[warn(clippy::unwrap_used)]
 mod actor;
 mod audio;
 mod globals;
@@ -105,7 +106,7 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
             lemonhead.offset_position(0.0, -PIXEL_PER_DOT / 4.0, delta_time);
         }
 
-        lemonhead.draw(canvas, animation_timer);
+        lemonhead.draw(canvas, animation_timer)?;
         canvas.present();
         for event in sdl_context.event_pump()?.poll_iter() {
             match event {

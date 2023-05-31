@@ -42,7 +42,7 @@ impl Actor {
         self.position.1 += y * delta_time;
     }
 
-    pub fn draw(&self, canvas: &mut WindowCanvas, animation_timer: f64) {
+    pub fn draw(&self, canvas: &mut WindowCanvas, animation_timer: f64) -> Result<(), String> {
         let offset = if animation_timer % 0.5 < 0.25 { 0 } else { 32 };
         let offset = offset
             + match self.state {
@@ -51,15 +51,13 @@ impl Actor {
                 ActorState::RunningLeft => 128,
             };
         let texture_creator = canvas.texture_creator();
-        let texture = texture_creator.load_texture(Path::new(self.asset)).unwrap();
+        let texture = texture_creator.load_texture(Path::new(self.asset))?;
 
-        canvas
-            .copy(
-                &texture,
-                rect!(offset, 0, 32, 32),
-                rect!(self.position.0, self.position.1, 64, 64),
-            )
-            .unwrap();
+        canvas.copy(
+            &texture,
+            rect!(offset, 0, 32, 32),
+            rect!(self.position.0, self.position.1, 64, 64),
+        )
     }
 }
 
