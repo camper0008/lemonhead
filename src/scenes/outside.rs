@@ -18,6 +18,7 @@ const HOUSE_OFFSET: f64 = 6.0;
 pub struct Outside {}
 
 enum Interactables {
+    Bike,
     Door,
     Ascension,
     Key,
@@ -33,6 +34,8 @@ impl Outside {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let ascension = texture_creator.load_texture(Path::new("assets/ascension.png"))?;
+
+        Tile::Bike.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         for i in 0..=2 {
             Tile::HouseBrick.draw(
@@ -126,6 +129,10 @@ impl Outside {
             items.push(((PIXEL_PER_DOT * 3.0), Interactables::Ascension));
         }
 
+        if state.confronted && !state.escaped {
+            items.push(((PIXEL_PER_DOT * 1.0), Interactables::Bike));
+        }
+
         items
     }
 }
@@ -177,6 +184,9 @@ impl Scene for Outside {
                     } else {
                         state.front_door_opened = true;
                     }
+                }
+                Interactables::Bike => {
+                    state.escaped = true;
                 }
             }
         }

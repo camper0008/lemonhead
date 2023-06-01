@@ -21,6 +21,7 @@ pub struct State {
     pub child_dead: bool,
     pub child_stabs: u32,
     pub ascended: bool,
+    pub escaped: bool,
     pub murderous_intent: bool,
     pub confronting_animation_timer: f64,
     pub scene_changed: Option<(f64, Scenes)>,
@@ -53,6 +54,7 @@ impl State {
             scene_changed: None,
             sound_effect,
             music,
+            escaped: false,
         }
     }
 

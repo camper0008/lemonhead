@@ -34,6 +34,12 @@ use sdl2::video::Window;
 use sdl2::Sdl;
 use state::State;
 
+enum Action {
+    GoodEnding,
+    Dead,
+    Quit,
+}
+
 fn prepare_window(sdl_context: &Sdl) -> Result<Window, String> {
     let video_subsystem = sdl_context.video()?;
     let _image_context = sdl2::image::init(InitFlag::PNG | InitFlag::JPG)?;
@@ -57,13 +63,14 @@ pub fn prepare_canvas(window: Window) -> Result<WindowCanvas, String> {
         .map_err(|e| e.to_string())
 }
 
-pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
+fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<Action, String> {
     let mut keys_down = HashMap::new();
 
     let sound_effect_sender = audio_thread();
     let music_effect_sender = audio_thread();
 
     let mut animation_timer = 0.0;
+    let mut escape_timer = 0.0;
 
     let outside = Outside::default();
     let entryway = Entryway::default();
@@ -79,7 +86,7 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
 
     state.change_background_track("assets/outside.ogg");
 
-    'game_loop: loop {
+    let action = 'game_loop: loop {
         let delta_time = 1.0 / 60.0;
         canvas.clear();
         scene.draw_scenery(&state, canvas, animation_timer)?;
@@ -89,11 +96,11 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
         }
 
         lemonhead.idle();
-        if *keys_down.get(&Keycode::A).unwrap_or(&false) && !state.ascended {
+        if *keys_down.get(&Keycode::A).unwrap_or(&false) && !(state.ascended || state.escaped) {
             lemonhead.offset_position(PIXEL_PER_DOT * -1.25, 0.0, delta_time);
             lemonhead.run_left();
         }
-        if *keys_down.get(&Keycode::D).unwrap_or(&false) && !state.ascended {
+        if *keys_down.get(&Keycode::D).unwrap_or(&false) && !(state.ascended || state.escaped) {
             lemonhead.offset_position(PIXEL_PER_DOT * 1.25, 0.0, delta_time);
             lemonhead.run_right();
         }
@@ -106,6 +113,15 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
             lemonhead.offset_position(0.0, -PIXEL_PER_DOT / 4.0, delta_time);
         }
 
+        if state.escaped {
+            lemonhead.run_left();
+            lemonhead.offset_position(-PIXEL_PER_DOT / 2.0, 0.0, delta_time);
+            escape_timer += delta_time;
+            if escape_timer > 5.0 {
+                break Action::GoodEnding;
+            }
+        }
+
         lemonhead.draw(canvas, animation_timer)?;
         canvas.present();
         for event in sdl_context.event_pump()?.poll_iter() {
@@ -114,7 +130,7 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
                 | Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
-                } => break 'game_loop,
+                } => break 'game_loop Action::Quit,
                 Event::KeyDown {
                     keycode: Some(k @ (Keycode::A | Keycode::D | Keycode::Space)),
                     ..
@@ -153,9 +169,9 @@ pub fn run(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
         animation_timer += delta_time;
         animation_timer %= 1.0;
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
-    }
+    };
 
-    Ok(())
+    Ok(action)
 }
 
 fn main() -> Result<(), String> {
@@ -163,9 +179,15 @@ fn main() -> Result<(), String> {
     let window = prepare_window(&sdl_context)?;
     let mut canvas = prepare_canvas(window)?;
 
-    main_menu(&sdl_context, &mut canvas)?;
-    run(&sdl_context, &mut canvas)?;
-    good_ending(&sdl_context, &mut canvas)?;
+    loop {
+        main_menu(&sdl_context, &mut canvas)?;
+        let action = run(&sdl_context, &mut canvas)?;
+        match action {
+            Action::Dead => todo!("game over screen"),
+            Action::GoodEnding => good_ending(&sdl_context, &mut canvas)?,
+            Action::Quit => break,
+        };
+    }
 
     Ok(())
 }
