@@ -164,11 +164,11 @@ impl Scene for Entryway {
             state.send_audio("assets/click.ogg");
             match item {
                 Interactables::ExitDoor => {
-                    if state.confronted && !state.child_dead {
+                    if state.dad_dead && !state.child_dead {
                         return;
                     }
                     state.scene_changed = Some((6.0, Scenes::Outside));
-                    if !state.confronted {
+                    if !state.child_dead {
                         state.change_background_track("assets/outside.ogg");
                     }
                 }

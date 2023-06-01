@@ -58,13 +58,17 @@ pub fn draw_interact_prompt(
 
     let offset = (animation_timer * PI * 2.0).sin() * PIXEL_PER_DOT * 0.05;
 
-    let x_size = if state.confronted && !state.dad_dead {
+    let x_size = if (state.murderous_intent && !state.dad_dead)
+        || (state.confronted && !state.weapon_picked_up)
+    {
         2.0
     } else {
         1.0
     };
 
-    let x_offset = if state.confronted && !state.dad_dead {
+    let x_offset = if (state.murderous_intent && !state.dad_dead)
+        || (state.confronted && !state.weapon_picked_up)
+    {
         0
     } else if state.dad_dead && !state.child_dead || state.child_dead && state.child_stabs > 2 {
         1
@@ -74,7 +78,7 @@ pub fn draw_interact_prompt(
 
     let y_offset = if state.confronted && !state.weapon_picked_up {
         1
-    } else if state.weapon_picked_up && !state.dad_dead {
+    } else if state.murderous_intent && !state.dad_dead {
         0
     } else if state.child_dead {
         3

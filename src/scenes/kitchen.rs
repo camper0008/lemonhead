@@ -149,7 +149,7 @@ impl Scene for Kitchen {
             state.send_audio("assets/click.ogg");
             match item {
                 Interactables::ExitDoor => {
-                    if state.confronted && !state.dad_dead {
+                    if state.confronted && !state.weapon_picked_up {
                         return;
                     }
                     state.scene_changed = Some((8.0, Scenes::Entryway));
@@ -167,6 +167,7 @@ impl Scene for Kitchen {
                     }
 
                     let scene = if state.weapon_picked_up {
+                        state.murderous_intent = true;
                         Scenes::MurderLivingRoom
                     } else {
                         Scenes::LivingRoom
