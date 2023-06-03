@@ -97,7 +97,7 @@ pub fn good_ending(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), S
                 | Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
-                } => break 'game_loop Err("user quit".to_string()),
+                } => break 'game_loop Ok(()),
                 Event::KeyDown {
                     keycode: Some(Keycode::Space),
                     ..
