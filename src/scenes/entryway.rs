@@ -12,7 +12,7 @@ use crate::{rect, scene::Scene};
 use super::Scenes;
 
 #[derive(Default)]
-pub struct Entryway {}
+pub struct Entryway;
 
 enum Interactables {
     KitchenDoor,

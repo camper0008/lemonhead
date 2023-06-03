@@ -3,7 +3,7 @@ use std::sync::mpsc::Sender;
 use crate::audio::Configuration;
 use crate::scenes::Scenes;
 
-pub struct State {
+pub struct State<'a> {
     pub front_door_key_picked_up: bool,
     pub front_door_opened: bool,
     pub weapon_picked_up: bool,
@@ -26,11 +26,11 @@ pub struct State {
     pub confronting_animation_timer: f64,
     pub scene_changed: Option<(f64, Scenes)>,
     sound_effect: Sender<Configuration>,
-    music: Sender<Configuration>,
+    music: &'a Sender<Configuration>,
 }
 
-impl State {
-    pub fn new(sound_effect: Sender<Configuration>, music: Sender<Configuration>) -> Self {
+impl<'a> State<'a> {
+    pub fn new(sound_effect: Sender<Configuration>, music: &'a Sender<Configuration>) -> Self {
         Self {
             front_door_key_picked_up: false,
             weapon_picked_up: false,
@@ -69,10 +69,7 @@ impl State {
 
     pub fn change_background_track(&self, path: &'static str) {
         self.music.send(Configuration::Stop).unwrap();
-
-        for _ in 0..500 {
-            self.music.send(Configuration::Play(0.5, path)).unwrap();
-        }
+        self.music.send(Configuration::Play(0.5, path)).unwrap();
     }
 
     pub fn stop_background_track(&self) {

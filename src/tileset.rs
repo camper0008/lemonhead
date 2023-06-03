@@ -5,6 +5,17 @@ use crate::globals::PIXEL_PER_DOT;
 use crate::rect;
 
 pub enum Tile {
+    LemonAngel0,
+    LemonAngel1,
+    Cloud0,
+    Cloud1,
+    Cloud2,
+    Cloud3,
+    GameOver,
+    TreeTrunk,
+    LemonSkull,
+    TreeLeaves,
+    Cross,
     Bike,
     Grass,
     HouseBrick,
@@ -76,7 +87,18 @@ impl Tile {
     }
     fn position(&self) -> (u32, u32) {
         match self {
+            Tile::LemonAngel0 => (6, 4),
+            Tile::LemonAngel1 => (6, 5),
+            Tile::GameOver => (5, 6),
             Tile::Bike => (0, 6),
+            Tile::LemonSkull => (4, 6),
+            Tile::Cross => (1, 6),
+            Tile::Cloud0 => (6, 0),
+            Tile::Cloud1 => (6, 1),
+            Tile::Cloud2 => (6, 2),
+            Tile::Cloud3 => (6, 3),
+            Tile::TreeTrunk => (2, 6),
+            Tile::TreeLeaves => (3, 6),
             Tile::Grass => (0, 0),
             Tile::HouseBrick => (1, 0),
             Tile::StripeWallpaper => (2, 0),

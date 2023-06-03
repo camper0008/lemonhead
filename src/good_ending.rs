@@ -1,14 +1,11 @@
 use sdl2::render::Texture;
-use std::{f64::consts::PI, path::Path, time::Duration};
+use std::{f64::consts::PI, path::Path, sync::mpsc::Sender, time::Duration};
 
 use sdl2::{
     event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, render::WindowCanvas, Sdl,
 };
 
-use crate::{
-    audio::{audio_thread, Configuration},
-    tileset::Tile,
-};
+use crate::{audio::Configuration, tileset::Tile};
 
 fn draw_layer_0(
     canvas: &mut WindowCanvas,
@@ -55,10 +52,12 @@ fn draw_layer_2(
     Ok(())
 }
 
-pub fn good_ending(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
+pub fn good_ending(
+    sdl_context: &Sdl,
+    canvas: &mut WindowCanvas,
+    music_sender: &Sender<Configuration>,
+) -> Result<(), String> {
     let mut animation_timer = 0.0;
-
-    let music_sender = audio_thread();
 
     for _ in 0..500 {
         music_sender

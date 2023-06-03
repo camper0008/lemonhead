@@ -15,7 +15,7 @@ use super::Scenes;
 const HOUSE_OFFSET: f64 = 6.0;
 
 #[derive(Default)]
-pub struct Outside {}
+pub struct Outside;
 
 enum Interactables {
     Bike,

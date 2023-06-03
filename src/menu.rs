@@ -1,28 +1,26 @@
 use sdl2::rect::Rect;
-use std::{f64::consts::PI, path::Path, time::Duration};
+use std::{f64::consts::PI, path::Path, sync::mpsc::Sender, time::Duration};
 
 use sdl2::{
     event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, render::WindowCanvas, Sdl,
 };
 
-use crate::{
-    actor::Actor,
-    audio::{audio_thread, Configuration},
-    globals::PIXEL_PER_DOT,
-    rect,
-    tileset::Tile,
-};
+use crate::{actor::Actor, audio::Configuration, globals::PIXEL_PER_DOT, rect, tileset::Tile};
 
-pub fn main_menu(sdl_context: &Sdl, canvas: &mut WindowCanvas) -> Result<(), String> {
+pub fn menu(
+    sdl_context: &Sdl,
+    canvas: &mut WindowCanvas,
+    music_sender: &Sender<Configuration>,
+) -> Result<(), String> {
     let mut animation_timer: f64 = 0.0;
 
-    let music_sender = audio_thread();
+    music_sender
+        .send(Configuration::Stop)
+        .map_err(|e| e.to_string())?;
 
-    for _ in 0..500 {
-        music_sender
-            .send(Configuration::Play(1.0, "assets/lemonhead.ogg"))
-            .map_err(|e| e.to_string())?;
-    }
+    music_sender
+        .send(Configuration::Play(1.0, "assets/lemonhead.ogg"))
+        .map_err(|e| e.to_string())?;
 
     let texture_creator = canvas.texture_creator();
     let tileset = texture_creator.load_texture(Path::new("assets/tile.png"))?;

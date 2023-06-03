@@ -1,5 +1,6 @@
 pub enum Configuration {
     Play(f32, &'static str),
+    Repeat(bool),
     Stop,
 }
 
@@ -10,7 +11,14 @@ use std::{
     thread,
 };
 
-use rodio::{Decoder, Sink};
+use rodio::{Decoder, OutputStreamHandle, Sink, Source};
+
+fn consume_sink(sink: Sink, stream_handle: &OutputStreamHandle) -> Result<Sink, String> {
+    sink.pause();
+    let sink = Sink::try_new(stream_handle).map_err(|e| e.to_string())?;
+
+    Ok(sink)
+}
 
 pub fn audio_thread() -> Sender<Configuration> {
     let (sender, receiver): (Sender<Configuration>, Receiver<Configuration>) = mpsc::channel();
@@ -19,7 +27,8 @@ pub fn audio_thread() -> Sender<Configuration> {
         let Ok((_stream, stream_handle)) = rodio::OutputStream::try_default() else {
             return Err("unable to open audio channel".to_owned());
         };
-        let sink = Sink::try_new(&stream_handle).map_err(|e| e.to_string())?;
+        let mut sink = Sink::try_new(&stream_handle).map_err(|e| e.to_string())?;
+        let mut repeat = false;
 
         loop {
             let Ok(config) = receiver.recv() else {
@@ -27,17 +36,25 @@ pub fn audio_thread() -> Sender<Configuration> {
             };
             let (volume, path) = match config {
                 Configuration::Stop => {
-                    sink.stop();
+                    sink = consume_sink(sink, &stream_handle)?;
                     continue;
                 }
                 Configuration::Play(volume, path) => (volume, path),
+                Configuration::Repeat(value) => {
+                    repeat = value;
+                    continue;
+                }
             };
             sink.set_volume(volume);
             let file = BufReader::new(
                 File::open(path).map_err(|_| format!("audio file at {path} not found"))?,
             );
             let source = Decoder::new(file).map_err(|e| e.to_string())?;
-            sink.append(source);
+            if repeat {
+                sink.append(source.repeat_infinite());
+            } else {
+                sink.append(source);
+            }
         }
 
         Ok(())
