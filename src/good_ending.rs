@@ -59,11 +59,9 @@ pub fn good_ending(
 ) -> Result<(), String> {
     let mut animation_timer = 0.0;
 
-    for _ in 0..500 {
-        music_sender
-            .send(Configuration::Play(1.0, "assets/rich.ogg"))
-            .unwrap();
-    }
+    music_sender
+        .send(Configuration::Play(1.0, "assets/rich.ogg"))
+        .unwrap();
 
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;

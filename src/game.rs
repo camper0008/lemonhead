@@ -57,11 +57,17 @@ pub fn game(
         }
 
         lemonhead.idle();
-        if *keys_down.get(&Keycode::A).unwrap_or(&false) && !(state.ascended || state.escaped) {
+        if *keys_down.get(&Keycode::A).unwrap_or(&false)
+            && !(state.ascended || state.escaped)
+            && lemonhead.x() > 0.0
+        {
             lemonhead.offset_position(PIXEL_PER_DOT * -1.25, 0.0, delta_time);
             lemonhead.run_left();
         }
-        if *keys_down.get(&Keycode::D).unwrap_or(&false) && !(state.ascended || state.escaped) {
+        if *keys_down.get(&Keycode::D).unwrap_or(&false)
+            && !(state.ascended || state.escaped)
+            && lemonhead.x() < (9.0 * PIXEL_PER_DOT)
+        {
             lemonhead.offset_position(PIXEL_PER_DOT * 1.25, 0.0, delta_time);
             lemonhead.run_right();
         }

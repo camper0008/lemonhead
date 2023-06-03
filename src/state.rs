@@ -68,7 +68,6 @@ impl<'a> State<'a> {
     }
 
     pub fn change_background_track(&self, path: &'static str) {
-        self.music.send(Configuration::Stop).unwrap();
         self.music.send(Configuration::Play(0.5, path)).unwrap();
     }
 
@@ -77,8 +76,6 @@ impl<'a> State<'a> {
     }
 
     pub fn play_ascension_track(&self) {
-        self.music.send(Configuration::Stop).unwrap();
-
         self.music
             .send(Configuration::Play(1.0, "assets/ascension.ogg"))
             .unwrap();

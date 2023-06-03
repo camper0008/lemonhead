@@ -167,7 +167,7 @@ impl Scene for Entryway {
                     if state.dad_dead && !state.child_dead {
                         return;
                     }
-                    state.scene_changed = Some((6.0, Scenes::Outside));
+                    state.scene_changed = Some((7.0, Scenes::Outside));
                     if !state.child_dead {
                         state.change_background_track("assets/outside.ogg");
                     }

@@ -129,7 +129,7 @@ impl Outside {
             items.push(((PIXEL_PER_DOT * 3.0), Interactables::Ascension));
         }
 
-        if state.confronted && !state.escaped {
+        if state.confronted && !state.escaped && !state.child_dead {
             items.push(((PIXEL_PER_DOT * 1.0), Interactables::Bike));
         }
 

@@ -45,6 +45,8 @@ pub fn audio_thread() -> Sender<Configuration> {
                     continue;
                 }
             };
+
+            sink = consume_sink(sink, &stream_handle)?;
             sink.set_volume(volume);
             let file = BufReader::new(
                 File::open(path).map_err(|_| format!("audio file at {path} not found"))?,

@@ -15,10 +15,6 @@ pub fn menu(
     let mut animation_timer: f64 = 0.0;
 
     music_sender
-        .send(Configuration::Stop)
-        .map_err(|e| e.to_string())?;
-
-    music_sender
         .send(Configuration::Play(1.0, "assets/lemonhead.ogg"))
         .map_err(|e| e.to_string())?;
 

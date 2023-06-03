@@ -142,6 +142,7 @@ impl Scene for ChildRoom {
         let items = self.prepare_items(state);
 
         let closest = closest_item_within_distance(items, position);
+
         if let Some(item) = closest {
             match item {
                 Interactables::ExitDoor => {

@@ -14,13 +14,8 @@ pub fn dead_ending(
     let mut animation_timer = 0.0;
 
     music_sender
-        .send(Configuration::Stop)
+        .send(Configuration::Play(0.75, "assets/ripbozo.ogg"))
         .map_err(|e| e.to_string())?;
-    for _ in 0..500 {
-        music_sender
-            .send(Configuration::Play(0.75, "assets/ripbozo.ogg"))
-            .map_err(|e| e.to_string())?;
-    }
 
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
