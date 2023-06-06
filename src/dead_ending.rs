@@ -47,7 +47,7 @@ pub fn dead_ending(
             (10.0, 10.0 - GROUND_LEVEL - 2.0),
         )?;
 
-        Tile::LemonSkull.draw(canvas, &texture, (5.0, GROUND_LEVEL + 2.0), (1.0, 1.0))?;
+        Tile::LemonSkull.draw(canvas, &texture, (5.0, GROUND_LEVEL + 2.0), (1.0, 0.5))?;
 
         let angel = if animation_timer % 0.2 > 0.1 {
             Tile::LemonAngel0
@@ -69,7 +69,7 @@ pub fn dead_ending(
             canvas,
             &texture,
             (2.0, 1.0 + (animation_timer * 1.2).sin() * 0.1),
-            (6.0, 6.0),
+            (6.0, 3.0),
         )?;
 
         canvas.present();

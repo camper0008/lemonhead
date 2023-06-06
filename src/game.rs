@@ -10,7 +10,7 @@ use crate::{
     scene::Scene,
     scenes::{
         child_room::ChildRoom, entryway::Entryway, kitchen::Kitchen, living_room::LivingRoom,
-        murder_living_room::MurderLivingRoom, outside::Outside, Scenes,
+        murder_living_room::MurderLivingRoom, outside::Outside, tutorial::Tutorial, Scenes,
     },
     state::State,
 };
@@ -33,6 +33,7 @@ pub fn game(
     let mut animation_timer = 0.0;
     let mut escape_timer = 0.0;
 
+    let tutorial = Tutorial::default();
     let outside = Outside::default();
     let entryway = Entryway::default();
     let kitchen = Kitchen::default();
@@ -40,7 +41,7 @@ pub fn game(
     let murder_living_room = MurderLivingRoom::default();
     let child_room = ChildRoom::default();
 
-    let mut scene: &dyn Scene = &outside;
+    let mut scene: &dyn Scene = &tutorial;
     let mut state = State::new(sound_effect_sender, music_sender);
     let mut lemonhead = Actor::new("assets/lemonhead.png");
     lemonhead.set_position(PIXEL_PER_DOT, PIXEL_PER_DOT * GROUND_LEVEL);

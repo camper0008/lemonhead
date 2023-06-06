@@ -75,7 +75,7 @@ impl Outside {
             (1.0, 1.0),
         )?;
 
-        let door_texture = if state.front_door_opened {
+        let door_texture = if state.front_door_key_picked_up {
             Tile::DoorOpen
         } else {
             Tile::DoorClosed
@@ -175,14 +175,10 @@ impl Scene for Outside {
                     state.play_ascension_track();
                 }
                 Interactables::Door => {
-                    if state.front_door_opened {
-                        state.scene_changed = Some((1.0, Scenes::Entryway));
+                    state.scene_changed = Some((1.0, Scenes::Entryway));
 
-                        if !(state.confronted) {
-                            state.change_background_track("assets/lemonhead.ogg");
-                        }
-                    } else {
-                        state.front_door_opened = true;
+                    if !(state.confronted) {
+                        state.change_background_track("assets/lemonhead.ogg");
                     }
                 }
                 Interactables::Bike => {

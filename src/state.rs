@@ -5,8 +5,8 @@ use crate::scenes::Scenes;
 
 pub struct State<'a> {
     pub front_door_key_picked_up: bool,
-    pub front_door_opened: bool,
     pub weapon_picked_up: bool,
+    pub tutorial_coin: bool,
     pub coin_0: bool,
     pub coin_1: bool,
     pub coin_2: bool,
@@ -34,7 +34,7 @@ impl<'a> State<'a> {
         Self {
             front_door_key_picked_up: false,
             weapon_picked_up: false,
-            front_door_opened: false,
+            tutorial_coin: false,
             coin_0: false,
             coin_1: false,
             coin_2: false,

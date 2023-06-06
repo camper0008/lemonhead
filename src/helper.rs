@@ -86,7 +86,7 @@ pub fn draw_interact_prompt(
         2
     };
 
-    let x_position = 5.5 - x_size;
+    let x_position = 5.0 - x_size;
 
     canvas.copy(
         &texture,
