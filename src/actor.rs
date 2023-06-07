@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use crate::globals::PIXEL_PER_DOT;
 use crate::rect;
 use sdl2::image::LoadTexture;
 use sdl2::rect::Rect;
@@ -56,7 +57,12 @@ impl Actor {
         canvas.copy(
             &texture,
             rect!(offset, 0, 32, 32),
-            rect!(self.position.0, self.position.1, 64, 64),
+            rect!(
+                self.position.0,
+                self.position.1,
+                PIXEL_PER_DOT,
+                PIXEL_PER_DOT
+            ),
         )
     }
 }
