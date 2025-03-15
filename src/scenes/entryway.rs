@@ -4,10 +4,11 @@ use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{closest_item_within_distance, draw_ground, draw_item, draw_wallpaper};
-use crate::state::State;
+use crate::helper::{draw_ground, draw_item, draw_wallpaper};
+use crate::rect;
+use crate::scene::{Id, Item, Items, Scene};
+use crate::state::{all_coins_collected, State};
 use crate::tileset::Tile;
-use crate::{rect, scene::Scene};
 
 use super::Scenes;
 
@@ -24,6 +25,35 @@ enum Interactables {
     Coin3,
 }
 
+impl Item for Interactables {
+    fn id(&self) -> Id {
+        match self {
+            Interactables::KitchenDoor => Id(0),
+            Interactables::ExitDoor => Id(1),
+            Interactables::ChildDoor => Id(2),
+            Interactables::Coin0 => Id(3),
+            Interactables::Coin1 => Id(4),
+            Interactables::Coin2 => Id(5),
+            Interactables::Coin3 => Id(6),
+        }
+    }
+}
+
+impl From<Id> for Interactables {
+    fn from(value: Id) -> Self {
+        match value {
+            Id(0) => Self::KitchenDoor,
+            Id(1) => Self::ExitDoor,
+            Id(2) => Self::ChildDoor,
+            Id(3) => Self::Coin0,
+            Id(4) => Self::Coin1,
+            Id(5) => Self::Coin2,
+            Id(6) => Self::Coin3,
+            Id(_) => unreachable!(),
+        }
+    }
+}
+
 impl Entryway {
     fn draw_house(
         &self,
@@ -38,7 +68,7 @@ impl Entryway {
         draw_wallpaper(canvas, &texture, &Tile::StripeWallpaper)?;
         Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
-        let picture_tile = if state.child_dead {
+        let picture_tile = if state.child_room.child_stabs > 0 {
             Tile::LemonDayPicture
         } else {
             Tile::TreeDayPicture
@@ -48,7 +78,7 @@ impl Entryway {
 
         Tile::HousePicture.draw(canvas, &texture, (2.0, GROUND_LEVEL), (1.0, 1.0))?;
 
-        if state.dad_dead {
+        if state.murder_living_room.dad_dead {
             canvas.copy(
                 &blood,
                 rect!(0, 0, 32, 32),
@@ -61,7 +91,7 @@ impl Entryway {
             )?;
         }
 
-        let kitchen_door = if state.coin_0 && state.coin_1 && state.coin_2 && state.coin_3 {
+        let kitchen_door = if all_coins_collected(&state.entryway.coins) {
             Tile::DoorOpen
         } else {
             Tile::DoorClosed
@@ -69,7 +99,7 @@ impl Entryway {
 
         kitchen_door.draw(canvas, &texture, (8.0, GROUND_LEVEL), (1.0, 1.0))?;
 
-        let child_door = if state.dad_dead {
+        let child_door = if state.murder_living_room.dad_dead {
             Tile::DoorOpen
         } else {
             Tile::DoorClosed
@@ -77,11 +107,11 @@ impl Entryway {
 
         child_door.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
 
-        if !state.dad_dead {
+        if !state.murder_living_room.dad_dead {
             Tile::ChildSticker.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
         }
 
-        if state.dad_dead && !state.child_dead {
+        if state.murder_living_room.dad_dead && state.child_room.child_stabs == 0 {
             canvas.copy(
                 &blood,
                 rect!(32, 0, 32, 32),
@@ -94,51 +124,25 @@ impl Entryway {
             )?;
         }
 
-        if !state.coin_0 {
+        if !state.entryway.coins[0] {
             draw_item(canvas, &texture, &Tile::Coin, 3.0, animation_timer)?;
         }
-        if !state.coin_1 {
+        if !state.entryway.coins[1] {
             draw_item(canvas, &texture, &Tile::Coin, 4.0, animation_timer)?;
         }
-        if !state.coin_2 {
+        if !state.entryway.coins[2] {
             draw_item(canvas, &texture, &Tile::Coin, 5.0, animation_timer)?;
         }
-        if !state.coin_3 {
+        if !state.entryway.coins[3] {
             draw_item(canvas, &texture, &Tile::Coin, 6.0, animation_timer)?;
         }
 
         Ok(())
     }
-
-    fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
-        let mut items = Vec::new();
-        items.push((PIXEL_PER_DOT, Interactables::ExitDoor));
-        if !state.coin_0 {
-            items.push(((PIXEL_PER_DOT * 3.), Interactables::Coin0));
-        }
-        if !state.coin_1 {
-            items.push(((PIXEL_PER_DOT * 4.), Interactables::Coin1));
-        }
-        if !state.coin_2 {
-            items.push(((PIXEL_PER_DOT * 5.), Interactables::Coin2));
-        }
-        if !state.coin_3 {
-            items.push(((PIXEL_PER_DOT * 6.), Interactables::Coin3));
-        }
-        if state.coin_0 && state.coin_1 && state.coin_2 && state.coin_3 {
-            items.push(((PIXEL_PER_DOT * 8.), Interactables::KitchenDoor));
-        }
-
-        if state.dad_dead {
-            items.push(((PIXEL_PER_DOT * 4.), Interactables::ChildDoor));
-        }
-
-        items
-    }
 }
 
 impl Scene for Entryway {
-    fn draw_scenery(
+    fn draw(
         &self,
         state: &crate::state::State,
         canvas: &mut sdl2::render::WindowCanvas,
@@ -150,39 +154,55 @@ impl Scene for Entryway {
         Ok(())
     }
 
-    fn should_draw_interact_popup(&self, state: &crate::state::State, position: f64) -> bool {
-        let items = self.prepare_items(state);
-        let closest = closest_item_within_distance(items, position);
-        closest.is_some()
+    fn prepare_items(&self, state: &State) -> Items {
+        let mut items = Items::new();
+        items.push(1, Interactables::ExitDoor);
+        if !state.entryway.coins[0] {
+            items.push(3, Interactables::Coin0);
+        }
+        if !state.entryway.coins[1] {
+            items.push(4, Interactables::Coin1);
+        }
+        if !state.entryway.coins[2] {
+            items.push(5, Interactables::Coin2);
+        }
+        if !state.entryway.coins[3] {
+            items.push(6, Interactables::Coin3);
+        }
+        if all_coins_collected(&state.entryway.coins) {
+            items.push(8, Interactables::KitchenDoor);
+        }
+        if state.murder_living_room.dad_dead {
+            items.push(4, Interactables::ChildDoor);
+        }
+        items
     }
 
     fn interact(&self, state: &mut crate::state::State, position: f64) {
-        let items = self.prepare_items(state);
-
-        let closest = closest_item_within_distance(items, position);
-        if let Some(item) = closest {
-            state.send_audio("assets/click.ogg");
-            match item {
-                Interactables::ExitDoor => {
-                    if state.dad_dead && !state.child_dead {
-                        return;
-                    }
-                    state.scene_changed = Some((7.0, Scenes::Outside));
-                    if !state.child_dead {
-                        state.change_background_track("assets/outside.ogg");
-                    }
+        let Some(closest) = self.closest_item_within_distance(state, position) else {
+            return;
+        };
+        state.send_audio("assets/click.ogg");
+        match closest.id().into() {
+            Interactables::ExitDoor => {
+                if state.murder_living_room.dad_dead && !state.child_room.child_stabs > 0 {
+                    return;
                 }
-                Interactables::Coin0 => state.coin_0 = true,
-                Interactables::Coin1 => state.coin_1 = true,
-                Interactables::Coin2 => state.coin_2 = true,
-                Interactables::Coin3 => state.coin_3 = true,
-                Interactables::ChildDoor => {
-                    state.change_background_track("assets/heartbeat-child-with-lemon.ogg");
-                    state.scene_changed = Some((1.0, Scenes::ChildRoom));
+                state.scene_changed = Some((7, Scenes::Outside));
+                if state.child_room.child_stabs == 0 {
+                    state.change_background_track("assets/outside.ogg");
                 }
-                Interactables::KitchenDoor => {
-                    state.scene_changed = Some((1.0, Scenes::Kitchen));
-                }
+            }
+            Interactables::Coin0 => state.entryway.coins[0] = true,
+            Interactables::Coin1 => state.entryway.coins[1] = true,
+            Interactables::Coin2 => state.entryway.coins[2] = true,
+            Interactables::Coin3 => state.entryway.coins[3] = true,
+            Interactables::ChildDoor => {
+                state.change_background_track("assets/heartbeat-child-with-lemon.ogg");
+                state.scene_changed = Some((1, Scenes::ChildRoom));
+            }
+            Interactables::KitchenDoor => {
+                state.scene_changed = Some((1, Scenes::Kitchen));
             }
         }
     }

@@ -3,9 +3,9 @@ use std::path::Path;
 use sdl2::render::Texture;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
-use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{closest_item_within_distance, draw_ground, draw_item};
-use crate::scene::Scene;
+use crate::globals::GROUND_LEVEL;
+use crate::helper::{draw_ground, draw_item};
+use crate::scene::{Id, Item, Items, Scene};
 use crate::state::State;
 use crate::tileset::Tile;
 
@@ -17,6 +17,25 @@ pub struct Tutorial;
 enum Interactables {
     Bike,
     Coin,
+}
+
+impl Item for Interactables {
+    fn id(&self) -> Id {
+        match self {
+            Interactables::Bike => Id(0),
+            Interactables::Coin => Id(1),
+        }
+    }
+}
+
+impl From<Id> for Interactables {
+    fn from(value: Id) -> Self {
+        match value {
+            Id(0) => Interactables::Bike,
+            Id(1) => Interactables::Coin,
+            Id(_) => unreachable!(),
+        }
+    }
 }
 
 impl Tutorial {
@@ -38,7 +57,7 @@ impl Tutorial {
         texture: &Texture,
         state: &State,
     ) -> Result<(), String> {
-        if !state.tutorial_coin {
+        if !state.tutorial.coin {
             Tile::IntroductionText.draw(canvas, texture, (3.0, 2.0), (4.0, 1.0))?;
             Tile::IntroductionGoalsText.draw(canvas, texture, (1.0, 3.0), (8.0, 1.0))?;
         } else {
@@ -55,21 +74,10 @@ impl Tutorial {
 
         Ok(())
     }
-
-    fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
-        let mut items = Vec::new();
-        if state.tutorial_coin {
-            items.push(((PIXEL_PER_DOT * 8.0), Interactables::Bike));
-        } else {
-            items.push(((PIXEL_PER_DOT * 4.0), Interactables::Coin));
-        };
-
-        items
-    }
 }
 
 impl Scene for Tutorial {
-    fn draw_scenery(
+    fn draw(
         &self,
         state: &crate::state::State,
         canvas: &mut sdl2::render::WindowCanvas,
@@ -81,30 +89,31 @@ impl Scene for Tutorial {
         draw_ground(canvas)?;
         self.draw_scenery(canvas, &texture)?;
         self.draw_text(canvas, &texture, state)?;
-        if !state.tutorial_coin {
+        if !state.tutorial.coin {
             draw_item(canvas, &texture, &Tile::Coin, 4.0, animation_timer)?;
         }
 
         Ok(())
     }
 
-    fn should_draw_interact_popup(&self, state: &crate::state::State, position: f64) -> bool {
-        let items = self.prepare_items(state);
-        let closest = closest_item_within_distance(items, position);
-        closest.is_some()
+    fn prepare_items(&self, state: &State) -> Items {
+        let mut items = Items::new();
+        if state.tutorial.coin {
+            items.push(8, Interactables::Bike);
+        } else {
+            items.push(4, Interactables::Coin);
+        };
+        items
     }
 
     fn interact(&self, state: &mut State, position: f64) {
-        let items = self.prepare_items(state);
-
-        let closest = closest_item_within_distance(items, position);
-        if let Some(item) = closest {
-            state.send_audio("assets/click.ogg");
-            match item {
-                Interactables::Coin => state.tutorial_coin = true,
-                Interactables::Bike => {
-                    state.scene_changed = Some((1.0, Scenes::Outside));
-                }
+        let closest = self.closest_item_within_distance(state, position);
+        let Some(item) = closest else { return };
+        state.send_audio("assets/click.ogg");
+        match Interactables::from(item.id()) {
+            Interactables::Coin => state.tutorial.coin = true,
+            Interactables::Bike => {
+                state.scene_changed = Some((1, Scenes::Outside));
             }
         }
     }

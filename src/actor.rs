@@ -12,6 +12,12 @@ pub struct Actor {
     asset: &'static str,
 }
 
+enum ActorState {
+    RunningLeft,
+    RunningRight,
+    Idle,
+}
+
 impl Actor {
     pub fn new(asset: &'static str) -> Self {
         Actor {
@@ -65,10 +71,4 @@ impl Actor {
             ),
         )
     }
-}
-
-enum ActorState {
-    RunningLeft,
-    RunningRight,
-    Idle,
 }

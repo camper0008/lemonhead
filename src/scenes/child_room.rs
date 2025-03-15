@@ -4,10 +4,12 @@ use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{closest_item_within_distance, draw_ground, draw_wallpaper};
+use crate::helper::{draw_ground, draw_wallpaper};
+use crate::rect;
 use crate::state::State;
 use crate::tileset::Tile;
-use crate::{rect, scene::Scene};
+
+use crate::scene::{Id, Item, Items, Scene};
 
 use super::Scenes;
 
@@ -17,6 +19,25 @@ pub struct ChildRoom;
 enum Interactables {
     ExitDoor,
     Child,
+}
+
+impl Item for Interactables {
+    fn id(&self) -> Id {
+        match self {
+            Interactables::ExitDoor => Id(0),
+            Interactables::Child => Id(1),
+        }
+    }
+}
+
+impl From<Id> for Interactables {
+    fn from(value: Id) -> Self {
+        match value {
+            Id(0) => Self::ExitDoor,
+            Id(1) => Self::Child,
+            Id(_) => unreachable!(),
+        }
+    }
 }
 
 impl ChildRoom {
@@ -45,7 +66,7 @@ impl ChildRoom {
         let child = texture_creator.load_texture(Path::new("assets/child.png"))?;
         let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
 
-        let offset = if state.child_dead {
+        let offset = if state.child_room.child_dead() {
             192
         } else if animation_timer < 0.5 {
             0
@@ -57,26 +78,26 @@ impl ChildRoom {
             &child,
             rect!(offset, 0, 32, 32),
             rect!(
-                PIXEL_PER_DOT * 5.,
+                PIXEL_PER_DOT * 5.0,
                 (GROUND_LEVEL) * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
             ),
         )?;
 
-        if state.child_stabs > 0 {
+        if state.child_room.child_stabs > 0 {
             canvas.copy(
                 &blood,
                 rect!(0, 0, 32, 32),
                 rect!(
-                    PIXEL_PER_DOT * 5.,
+                    PIXEL_PER_DOT * 5.0,
                     (GROUND_LEVEL) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
             )?;
         }
-        if state.child_stabs > 1 {
+        if state.child_room.child_stabs > 1 {
             canvas.copy(
                 &blood,
                 rect!(0, 32, 32, 32),
@@ -88,7 +109,7 @@ impl ChildRoom {
                 ),
             )?;
         }
-        if state.child_stabs > 2 {
+        if state.child_room.child_stabs > 2 {
             canvas.copy(
                 &blood,
                 rect!(32, 32, 32, 32),
@@ -103,23 +124,10 @@ impl ChildRoom {
 
         Ok(())
     }
-
-    fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
-        let mut items = Vec::new();
-        if state.child_stabs < 3 {
-            items.push(((PIXEL_PER_DOT * 5.0), Interactables::Child));
-        }
-
-        if state.child_dead {
-            items.push((PIXEL_PER_DOT, Interactables::ExitDoor));
-        }
-
-        items
-    }
 }
 
 impl Scene for ChildRoom {
-    fn draw_scenery(
+    fn draw(
         &self,
         state: &crate::state::State,
         canvas: &mut sdl2::render::WindowCanvas,
@@ -132,37 +140,40 @@ impl Scene for ChildRoom {
         Ok(())
     }
 
-    fn should_draw_interact_popup(&self, state: &crate::state::State, position: f64) -> bool {
-        let items = self.prepare_items(state);
-        let closest = closest_item_within_distance(items, position);
-        closest.is_some()
+    fn prepare_items(&self, state: &State) -> Items {
+        let mut items = Items::new();
+        if state.child_room.child_stabs < 3 {
+            items.push(5, Interactables::Child);
+        }
+        if state.child_room.child_stabs > 0 {
+            items.push(1, Interactables::ExitDoor);
+        }
+        items
     }
 
     fn interact(&self, state: &mut crate::state::State, position: f64) {
-        let items = self.prepare_items(state);
-
-        let closest = closest_item_within_distance(items, position);
-
-        if let Some(item) = closest {
-            match item {
-                Interactables::ExitDoor => {
-                    state.send_audio("assets/click.ogg");
-                    if state.child_stabs < 3 {
-                        return;
-                    }
-                    state.scene_changed = Some((4.0, Scenes::Entryway));
+        let Some(closest) = self.closest_item_within_distance(state, position) else {
+            return;
+        };
+        match closest.id().into() {
+            Interactables::ExitDoor => {
+                state.send_audio("assets/click.ogg");
+                if state.child_room.child_stabs < 3 {
+                    return;
                 }
-                Interactables::Child => {
-                    state.send_audio("assets/stab.ogg");
-                    state.child_dead = true;
-                    state.child_stabs += 1;
-                    if state.child_stabs == 1 {
-                        state.change_background_track("assets/heartbeat-child.ogg");
-                    } else if state.child_stabs == 2 {
-                        state.change_background_track("assets/heartbeat.ogg");
-                    } else if state.child_stabs == 3 {
-                        state.stop_background_track();
-                    }
+                state.scene_changed = Some((4, Scenes::Entryway));
+            }
+            Interactables::Child => {
+                state.send_audio("assets/stab.ogg");
+                state.child_room.child_stabs += 1;
+                if state.child_room.child_stabs == 1 {
+                    state.change_background_track("assets/heartbeat-child.ogg");
+                } else if state.child_room.child_stabs == 2 {
+                    state.change_background_track("assets/heartbeat.ogg");
+                } else if state.child_room.child_stabs == 3 {
+                    state.stop_background_track();
+                } else {
+                    unreachable!();
                 }
             }
         }

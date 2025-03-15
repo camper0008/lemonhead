@@ -11,6 +11,7 @@ mod scene;
 mod scenes;
 mod state;
 mod tileset;
+mod ui_ctx;
 
 use audio::{audio_thread, Configuration};
 use dead_ending::dead_ending;
@@ -34,6 +35,8 @@ fn prepare_window(sdl_context: &Sdl) -> Result<Window, String> {
             PIXEL_PER_DOT as u32 * 10,
         )
         .position_centered()
+        .resizable()
+        .maximized()
         .build()
         .map_err(|e| e.to_string())?;
     Ok(window)

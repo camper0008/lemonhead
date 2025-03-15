@@ -5,14 +5,15 @@ use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{closest_item_within_distance, draw_ground, draw_item};
+use crate::helper::{draw_ground, draw_item};
+use crate::scene::{Id, Item, Items};
 use crate::state::State;
 use crate::tileset::Tile;
 use crate::{rect, scene::Scene};
 
 use super::Scenes;
 
-const HOUSE_OFFSET: f64 = 6.0;
+const HOUSE_OFFSET: u8 = 6;
 
 #[derive(Default)]
 pub struct Outside;
@@ -22,6 +23,29 @@ enum Interactables {
     Door,
     Ascension,
     Key,
+}
+
+impl Item for Interactables {
+    fn id(&self) -> crate::scene::Id {
+        match self {
+            Self::Bike => Id(0),
+            Self::Door => Id(1),
+            Self::Ascension => Id(2),
+            Self::Key => Id(3),
+        }
+    }
+}
+
+impl From<Id> for Interactables {
+    fn from(value: Id) -> Self {
+        match value {
+            Id(0) => Self::Bike,
+            Id(1) => Self::Door,
+            Id(2) => Self::Ascension,
+            Id(3) => Self::Key,
+            Id(_) => unreachable!(),
+        }
+    }
 }
 
 impl Outside {
@@ -41,7 +65,7 @@ impl Outside {
             Tile::HouseBrick.draw(
                 canvas,
                 &texture,
-                (HOUSE_OFFSET + f64::from(i), GROUND_LEVEL),
+                ((HOUSE_OFFSET + i) as f64, GROUND_LEVEL),
                 (1.0, 1.0),
             )?;
         }
@@ -50,7 +74,7 @@ impl Outside {
             Tile::Grass.draw(canvas, &texture, (f64::from(x), GROUND_LEVEL), (1.0, 1.0))?;
         }
 
-        if state.child_dead {
+        if state.child_room.child_dead() {
             Tile::LemonSun.draw(canvas, &texture, (1.0, 1.0), (1.0, 1.0))?;
         } else {
             Tile::Sun.draw(canvas, &texture, (1.0, 1.0), (1.0, 1.0))?;
@@ -59,23 +83,23 @@ impl Outside {
         Tile::LeftTriangle.draw(
             canvas,
             &texture,
-            (HOUSE_OFFSET, GROUND_LEVEL - 1.0),
+            (HOUSE_OFFSET as f64, GROUND_LEVEL - 1.0),
             (1.0, 1.0),
         )?;
         Tile::Block.draw(
             canvas,
             &texture,
-            (HOUSE_OFFSET + 1.0, GROUND_LEVEL - 1.0),
+            ((HOUSE_OFFSET + 1) as f64, GROUND_LEVEL - 1.0),
             (1.0, 1.0),
         )?;
         Tile::RightTriangle.draw(
             canvas,
             &texture,
-            (HOUSE_OFFSET + 2.0, GROUND_LEVEL - 1.0),
+            ((HOUSE_OFFSET + 2) as f64, GROUND_LEVEL - 1.0),
             (1.0, 1.0),
         )?;
 
-        let door_texture = if state.front_door_key_picked_up {
+        let door_texture = if state.outside.key_collected {
             Tile::DoorOpen
         } else {
             Tile::DoorClosed
@@ -84,13 +108,13 @@ impl Outside {
         door_texture.draw(
             canvas,
             &texture,
-            (HOUSE_OFFSET + 1.0, GROUND_LEVEL),
+            ((HOUSE_OFFSET + 1) as f64, GROUND_LEVEL),
             (1.0, 1.0),
         )?;
 
         let ascension_offset = (animation_timer * 4.0).floor() * 32.0;
 
-        if state.child_dead {
+        if state.child_room.child_dead() {
             canvas.copy(
                 &ascension,
                 rect!(ascension_offset, 0, 32, 128),
@@ -109,42 +133,22 @@ impl Outside {
             )?;
         }
 
-        if !state.front_door_key_picked_up {
+        if !state.outside.key_collected {
             draw_item(canvas, &texture, &Tile::Key, 3.0, animation_timer)?;
         }
 
         Ok(())
     }
-
-    fn prepare_items(&self, state: &State) -> Vec<(f64, Interactables)> {
-        let mut items = Vec::new();
-        if state.front_door_key_picked_up {
-            items.push(((PIXEL_PER_DOT * (HOUSE_OFFSET + 1.0)), Interactables::Door));
-        }
-        if !state.front_door_key_picked_up {
-            items.push(((PIXEL_PER_DOT * 3.0), Interactables::Key));
-        }
-
-        if state.child_dead && !state.ascended {
-            items.push(((PIXEL_PER_DOT * 3.0), Interactables::Ascension));
-        }
-
-        if state.confronted && !state.escaped && !state.child_dead {
-            items.push(((PIXEL_PER_DOT * 1.0), Interactables::Bike));
-        }
-
-        items
-    }
 }
 
 impl Scene for Outside {
-    fn draw_scenery(
+    fn draw(
         &self,
         state: &crate::state::State,
         canvas: &mut sdl2::render::WindowCanvas,
         animation_timer: f64,
     ) -> Result<(), String> {
-        if state.child_dead {
+        if state.child_room.child_dead() {
             canvas.set_draw_color(Color::RGB(217, 87, 99));
         } else {
             canvas.set_draw_color(Color::RGB(255, 255, 255));
@@ -156,34 +160,45 @@ impl Scene for Outside {
         Ok(())
     }
 
-    fn should_draw_interact_popup(&self, state: &crate::state::State, position: f64) -> bool {
-        let items = self.prepare_items(state);
-        let closest = closest_item_within_distance(items, position);
-        closest.is_some()
+    fn prepare_items(&self, state: &State) -> Items {
+        let mut items = Items::new();
+        if state.outside.key_collected {
+            items.push(HOUSE_OFFSET + 1, Interactables::Door);
+        } else {
+            items.push(3, Interactables::Key);
+        }
+
+        if state.child_room.child_dead() && !state.ascended {
+            items.push(3, Interactables::Ascension);
+        }
+
+        if state.living_room.confronted && !state.escaped && !state.child_room.child_dead() {
+            items.push(1, Interactables::Bike);
+        }
+
+        items
     }
 
     fn interact(&self, state: &mut crate::state::State, position: f64) {
-        let items = self.prepare_items(state);
+        let Some(closest) = self.closest_item_within_distance(state, position) else {
+            return;
+        };
+        state.send_audio("assets/click.ogg");
+        match closest.id().into() {
+            Interactables::Key => state.outside.key_collected = true,
+            Interactables::Ascension => {
+                state.ascended = true;
+                state.play_ascension_track();
+            }
+            Interactables::Door => {
+                state.scene_changed = Some((1, Scenes::Entryway));
 
-        let closest = closest_item_within_distance(items, position);
-        if let Some(item) = closest {
-            state.send_audio("assets/click.ogg");
-            match item {
-                Interactables::Key => state.front_door_key_picked_up = true,
-                Interactables::Ascension => {
-                    state.ascended = true;
-                    state.play_ascension_track();
+                if !state.living_room.confronted {
+                    state.change_background_track("assets/lemonhead.ogg");
                 }
-                Interactables::Door => {
-                    state.scene_changed = Some((1.0, Scenes::Entryway));
-
-                    if !(state.confronted) {
-                        state.change_background_track("assets/lemonhead.ogg");
-                    }
-                }
-                Interactables::Bike => {
-                    state.escaped = true;
-                }
+            }
+            Interactables::Bike => {
+                state.escaped = true;
             }
         }
     }

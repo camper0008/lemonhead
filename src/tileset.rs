@@ -64,7 +64,7 @@ impl Tile {
         dest_position: (f64, f64),
         dest_size: (f64, f64),
     ) -> Result<(), String> {
-        let src_position = self.position();
+        let src_position = self.spritesheet_offset();
         let src_size = self.size();
         canvas.copy(
             texture,
@@ -93,7 +93,7 @@ impl Tile {
             _ => (32, 32),
         }
     }
-    fn position(&self) -> (f64, f64) {
+    fn spritesheet_offset(&self) -> (f64, f64) {
         match self {
             Tile::LemonAngel0 => (6.0, 4.0),
             Tile::LemonAngel1 => (6.0, 5.0),

@@ -35,19 +35,6 @@ pub fn draw_item(
     Ok(())
 }
 
-pub fn closest_item_within_distance<T>(items: Vec<(f64, T)>, position: f64) -> Option<T> {
-    if items.is_empty() {
-        return None;
-    }
-
-    items
-        .into_iter()
-        .map(|(dist, item)| ((dist - position).abs(), item))
-        .filter(|(dist, _)| dist < &(PIXEL_PER_DOT / 2.0))
-        .min_by(|x, y| (x.0).total_cmp(&y.0))
-        .map(|(_dist, item)| item)
-}
-
 pub fn draw_interact_prompt(
     canvas: &mut WindowCanvas,
     state: &State,
@@ -58,29 +45,32 @@ pub fn draw_interact_prompt(
 
     let offset = (animation_timer * PI * 2.0).sin() * PIXEL_PER_DOT * 0.05;
 
-    let x_size = if (state.murderous_intent && !state.dad_dead)
-        || (state.confronted && !state.weapon_picked_up)
-    {
+    let murderous_intent_while_dad_alive =
+        state.murder_living_room.murderous_intent && !state.murder_living_room.dad_dead;
+
+    let intent_undecided = state.living_room.confronted && !state.kitchen.weapon_collected;
+
+    let x_size = if murderous_intent_while_dad_alive || intent_undecided {
         2.0
     } else {
         1.0
     };
 
-    let x_offset = if (state.murderous_intent && !state.dad_dead)
-        || (state.confronted && !state.weapon_picked_up)
-    {
+    let x_offset = if murderous_intent_while_dad_alive || intent_undecided {
         0
-    } else if state.dad_dead && !state.child_dead || state.child_dead && state.child_stabs > 2 {
+    } else if state.murder_living_room.dad_dead && !state.child_room.child_dead()
+        || state.child_room.child_stabs >= 3
+    {
         1
     } else {
         0
     };
 
-    let y_offset = if state.confronted && !state.weapon_picked_up {
+    let y_offset = if intent_undecided {
         1
-    } else if state.murderous_intent && !state.dad_dead {
+    } else if murderous_intent_while_dad_alive {
         0
-    } else if state.child_dead {
+    } else if state.child_room.child_dead() {
         3
     } else {
         2
