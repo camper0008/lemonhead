@@ -7,7 +7,6 @@ mod globals;
 mod good_ending;
 mod helper;
 mod menu;
-mod scene;
 mod scenes;
 mod state;
 mod tileset;

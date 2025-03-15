@@ -3,12 +3,12 @@ use std::path::Path;
 use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
+use super::{InteractableId, Item, Items, Scene};
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_wallpaper};
-use crate::scene::{Id, Item, Items};
+use crate::rect;
 use crate::state::State;
 use crate::tileset::Tile;
-use crate::{rect, scene::Scene};
 
 use super::Scenes;
 
@@ -21,20 +21,20 @@ enum Interactables {
 }
 
 impl Item for Interactables {
-    fn id(&self) -> Id {
+    fn id(&self) -> InteractableId {
         match self {
-            Self::ExitDoor => Id(0),
-            Self::Dad => Id(1),
+            Self::ExitDoor => InteractableId(0),
+            Self::Dad => InteractableId(1),
         }
     }
 }
 
-impl From<Id> for Interactables {
-    fn from(value: Id) -> Self {
+impl From<InteractableId> for Interactables {
+    fn from(value: InteractableId) -> Self {
         match value {
-            Id(0) => Self::ExitDoor,
-            Id(1) => Self::Dad,
-            Id(_) => unreachable!(),
+            InteractableId(0) => Self::ExitDoor,
+            InteractableId(1) => Self::Dad,
+            InteractableId(_) => unreachable!(),
         }
     }
 }

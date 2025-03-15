@@ -3,10 +3,10 @@ use std::path::Path;
 use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
+use super::{InteractableId, Item, Items, Scene};
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_item, draw_wallpaper};
 use crate::rect;
-use crate::scene::{Id, Item, Items, Scene};
 use crate::state::{all_coins_collected, State};
 use crate::tileset::Tile;
 
@@ -26,30 +26,30 @@ enum Interactables {
 }
 
 impl Item for Interactables {
-    fn id(&self) -> Id {
+    fn id(&self) -> InteractableId {
         match self {
-            Interactables::KitchenDoor => Id(0),
-            Interactables::ExitDoor => Id(1),
-            Interactables::ChildDoor => Id(2),
-            Interactables::Coin0 => Id(3),
-            Interactables::Coin1 => Id(4),
-            Interactables::Coin2 => Id(5),
-            Interactables::Coin3 => Id(6),
+            Interactables::KitchenDoor => InteractableId(0),
+            Interactables::ExitDoor => InteractableId(1),
+            Interactables::ChildDoor => InteractableId(2),
+            Interactables::Coin0 => InteractableId(3),
+            Interactables::Coin1 => InteractableId(4),
+            Interactables::Coin2 => InteractableId(5),
+            Interactables::Coin3 => InteractableId(6),
         }
     }
 }
 
-impl From<Id> for Interactables {
-    fn from(value: Id) -> Self {
+impl From<InteractableId> for Interactables {
+    fn from(value: InteractableId) -> Self {
         match value {
-            Id(0) => Self::KitchenDoor,
-            Id(1) => Self::ExitDoor,
-            Id(2) => Self::ChildDoor,
-            Id(3) => Self::Coin0,
-            Id(4) => Self::Coin1,
-            Id(5) => Self::Coin2,
-            Id(6) => Self::Coin3,
-            Id(_) => unreachable!(),
+            InteractableId(0) => Self::KitchenDoor,
+            InteractableId(1) => Self::ExitDoor,
+            InteractableId(2) => Self::ChildDoor,
+            InteractableId(3) => Self::Coin0,
+            InteractableId(4) => Self::Coin1,
+            InteractableId(5) => Self::Coin2,
+            InteractableId(6) => Self::Coin3,
+            InteractableId(_) => unreachable!(),
         }
     }
 }

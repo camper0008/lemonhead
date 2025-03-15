@@ -3,13 +3,13 @@ use std::path::Path;
 use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
+use super::{InteractableId, Item, Items, Scene};
 use crate::actor::Actor;
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_item, draw_wallpaper};
-use crate::scene::{Id, Item, Items};
+use crate::rect;
 use crate::state::State;
 use crate::tileset::Tile;
-use crate::{rect, scene::Scene};
 
 use super::Scenes;
 
@@ -23,22 +23,22 @@ enum Interactables {
 }
 
 impl Item for Interactables {
-    fn id(&self) -> Id {
+    fn id(&self) -> InteractableId {
         match self {
-            Self::ExitDoor => Id(0),
-            Self::Coin0 => Id(1),
-            Self::Coin1 => Id(2),
+            Self::ExitDoor => InteractableId(0),
+            Self::Coin0 => InteractableId(1),
+            Self::Coin1 => InteractableId(2),
         }
     }
 }
 
-impl From<Id> for Interactables {
-    fn from(value: Id) -> Self {
+impl From<InteractableId> for Interactables {
+    fn from(value: InteractableId) -> Self {
         match value {
-            Id(0) => Self::ExitDoor,
-            Id(1) => Self::Coin0,
-            Id(2) => Self::Coin1,
-            Id(_) => unreachable!(),
+            InteractableId(0) => Self::ExitDoor,
+            InteractableId(1) => Self::Coin0,
+            InteractableId(2) => Self::Coin1,
+            InteractableId(_) => unreachable!(),
         }
     }
 }
@@ -82,11 +82,12 @@ impl LivingRoom {
         }
         let texture_creator = canvas.texture_creator();
         let bubble = texture_creator.load_texture(Path::new("assets/bubble.png"))?;
-        let offset = (state.confronting_animation_timer * 8.0).round() * 32.0;
+        let offset = (state.living_room.dad_confrontation_progress * 8.0).round() * 32.0;
 
         let mut dad = Actor::new("assets/dad.png");
         dad.set_position(
-            PIXEL_PER_DOT * 14.0 - (state.confronting_animation_timer * 2.0 * PIXEL_PER_DOT),
+            PIXEL_PER_DOT * 14.0
+                - (state.living_room.dad_confrontation_progress * 2.0 * PIXEL_PER_DOT),
             PIXEL_PER_DOT * GROUND_LEVEL,
         );
         dad.run_left();

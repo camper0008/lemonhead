@@ -117,9 +117,9 @@ pub fn game(
         }
 
         if all_coins_collected(&state.living_room.coins) && !state.living_room.confronted {
-            state.confronting_animation_timer += delta_time;
-            let dad_position =
-                PIXEL_PER_DOT * 13.65 - (state.confronting_animation_timer * 2.0 * PIXEL_PER_DOT);
+            state.living_room.dad_confrontation_progress += delta_time;
+            let dad_position = PIXEL_PER_DOT * 13.65
+                - (state.living_room.dad_confrontation_progress * 2.0 * PIXEL_PER_DOT);
             if dad_position <= lemonhead.x() {
                 break Action::Dead;
             }

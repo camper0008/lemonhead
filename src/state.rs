@@ -26,6 +26,7 @@ pub struct Kitchen {
 
 pub struct LivingRoom {
     pub coins: [bool; 2],
+    pub dad_confrontation_progress: f64,
     pub confronted: bool,
 }
 
@@ -55,7 +56,6 @@ pub struct State<'a> {
 
     pub ascended: bool,
     pub escaped: bool,
-    pub confronting_animation_timer: f64,
 
     pub scene_changed: Option<(u8, Scenes)>,
     sound_effect: Sender<Configuration>,
@@ -76,6 +76,7 @@ impl<'a> State<'a> {
             },
             living_room: LivingRoom {
                 coins: [false; 2],
+                dad_confrontation_progress: 0.0,
                 confronted: false,
             },
             murder_living_room: MurderLivingRoom {
@@ -84,7 +85,6 @@ impl<'a> State<'a> {
             },
             child_room: ChildRoom { child_stabs: 0 },
             ascended: false,
-            confronting_animation_timer: 0.0,
             scene_changed: None,
             sound_effect,
             music,

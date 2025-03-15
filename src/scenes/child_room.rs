@@ -9,7 +9,7 @@ use crate::rect;
 use crate::state::State;
 use crate::tileset::Tile;
 
-use crate::scene::{Id, Item, Items, Scene};
+use super::{InteractableId, Item, Items, Scene};
 
 use super::Scenes;
 
@@ -22,20 +22,20 @@ enum Interactables {
 }
 
 impl Item for Interactables {
-    fn id(&self) -> Id {
+    fn id(&self) -> InteractableId {
         match self {
-            Interactables::ExitDoor => Id(0),
-            Interactables::Child => Id(1),
+            Interactables::ExitDoor => InteractableId(0),
+            Interactables::Child => InteractableId(1),
         }
     }
 }
 
-impl From<Id> for Interactables {
-    fn from(value: Id) -> Self {
+impl From<InteractableId> for Interactables {
+    fn from(value: InteractableId) -> Self {
         match value {
-            Id(0) => Self::ExitDoor,
-            Id(1) => Self::Child,
-            Id(_) => unreachable!(),
+            InteractableId(0) => Self::ExitDoor,
+            InteractableId(1) => Self::Child,
+            InteractableId(_) => unreachable!(),
         }
     }
 }

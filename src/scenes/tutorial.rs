@@ -3,9 +3,9 @@ use std::path::Path;
 use sdl2::render::Texture;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
+use super::{InteractableId, Item, Items, Scene};
 use crate::globals::GROUND_LEVEL;
 use crate::helper::{draw_ground, draw_item};
-use crate::scene::{Id, Item, Items, Scene};
 use crate::state::State;
 use crate::tileset::Tile;
 
@@ -20,20 +20,20 @@ enum Interactables {
 }
 
 impl Item for Interactables {
-    fn id(&self) -> Id {
+    fn id(&self) -> InteractableId {
         match self {
-            Interactables::Bike => Id(0),
-            Interactables::Coin => Id(1),
+            Interactables::Bike => InteractableId(0),
+            Interactables::Coin => InteractableId(1),
         }
     }
 }
 
-impl From<Id> for Interactables {
-    fn from(value: Id) -> Self {
+impl From<InteractableId> for Interactables {
+    fn from(value: InteractableId) -> Self {
         match value {
-            Id(0) => Interactables::Bike,
-            Id(1) => Interactables::Coin,
-            Id(_) => unreachable!(),
+            InteractableId(0) => Interactables::Bike,
+            InteractableId(1) => Interactables::Coin,
+            InteractableId(_) => unreachable!(),
         }
     }
 }

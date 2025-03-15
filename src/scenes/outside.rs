@@ -4,12 +4,12 @@ use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::{image::LoadTexture, render::WindowCanvas};
 
+use super::{InteractableId, Item, Items, Scene};
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_item};
-use crate::scene::{Id, Item, Items};
+use crate::rect;
 use crate::state::State;
 use crate::tileset::Tile;
-use crate::{rect, scene::Scene};
 
 use super::Scenes;
 
@@ -26,24 +26,24 @@ enum Interactables {
 }
 
 impl Item for Interactables {
-    fn id(&self) -> crate::scene::Id {
+    fn id(&self) -> InteractableId {
         match self {
-            Self::Bike => Id(0),
-            Self::Door => Id(1),
-            Self::Ascension => Id(2),
-            Self::Key => Id(3),
+            Self::Bike => InteractableId(0),
+            Self::Door => InteractableId(1),
+            Self::Ascension => InteractableId(2),
+            Self::Key => InteractableId(3),
         }
     }
 }
 
-impl From<Id> for Interactables {
-    fn from(value: Id) -> Self {
+impl From<InteractableId> for Interactables {
+    fn from(value: InteractableId) -> Self {
         match value {
-            Id(0) => Self::Bike,
-            Id(1) => Self::Door,
-            Id(2) => Self::Ascension,
-            Id(3) => Self::Key,
-            Id(_) => unreachable!(),
+            InteractableId(0) => Self::Bike,
+            InteractableId(1) => Self::Door,
+            InteractableId(2) => Self::Ascension,
+            InteractableId(3) => Self::Key,
+            InteractableId(_) => unreachable!(),
         }
     }
 }
