@@ -6,6 +6,7 @@ use sdl2::{image::LoadTexture, render::WindowCanvas};
 use super::{InteractableId, Item, Items, Scene};
 use crate::globals::GROUND_LEVEL;
 use crate::helper::{draw_ground, draw_item};
+use crate::logic::Unit;
 use crate::state::State;
 use crate::tileset::Tile;
 
@@ -99,14 +100,14 @@ impl Scene for Tutorial {
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
         if state.tutorial.coin {
-            items.push(8, Interactables::Bike);
+            items.push(Unit::from_units(8), Interactables::Bike);
         } else {
-            items.push(4, Interactables::Coin);
+            items.push(Unit::from_units(4), Interactables::Coin);
         };
         items
     }
 
-    fn interact(&self, state: &mut State, position: f64) {
+    fn interact(&self, state: &mut State, position: Unit) {
         let closest = self.closest_item_within_distance(state, position);
         let Some(item) = closest else { return };
         state.send_audio("assets/click.ogg");

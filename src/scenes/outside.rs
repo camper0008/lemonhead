@@ -7,13 +7,14 @@ use sdl2::{image::LoadTexture, render::WindowCanvas};
 use super::{InteractableId, Item, Items, Scene};
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_item};
+use crate::logic::Unit;
 use crate::rect;
 use crate::state::State;
 use crate::tileset::Tile;
 
 use super::Scenes;
 
-const HOUSE_OFFSET: u8 = 6;
+const HOUSE_OFFSET: i32 = 6;
 
 #[derive(Default)]
 pub struct Outside;
@@ -163,23 +164,23 @@ impl Scene for Outside {
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
         if state.outside.key_collected {
-            items.push(HOUSE_OFFSET + 1, Interactables::Door);
+            items.push(Unit::from_units(HOUSE_OFFSET + 1), Interactables::Door);
         } else {
-            items.push(3, Interactables::Key);
+            items.push(Unit::from_units(3), Interactables::Key);
         }
 
         if state.child_room.child_dead() && !state.ascended {
-            items.push(3, Interactables::Ascension);
+            items.push(Unit::from_units(3), Interactables::Ascension);
         }
 
         if state.living_room.confronted && !state.escaped && !state.child_room.child_dead() {
-            items.push(1, Interactables::Bike);
+            items.push(Unit::from_units(1), Interactables::Bike);
         }
 
         items
     }
 
-    fn interact(&self, state: &mut crate::state::State, position: f64) {
+    fn interact(&self, state: &mut crate::state::State, position: Unit) {
         let Some(closest) = self.closest_item_within_distance(state, position) else {
             return;
         };

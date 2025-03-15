@@ -1,13 +1,14 @@
 use std::path::Path;
 
 use crate::globals::PIXEL_PER_DOT;
+use crate::logic::Unit;
 use crate::rect;
 use sdl2::image::LoadTexture;
 use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
 
 pub struct Actor {
-    position: (f64, f64),
+    position: (Unit, Unit),
     state: ActorState,
     asset: &'static str,
 }
@@ -21,13 +22,13 @@ enum ActorState {
 impl Actor {
     pub fn new(asset: &'static str) -> Self {
         Actor {
-            position: (0.0, 0.0),
+            position: (Unit::from_units(0), Unit::from_units(0)),
             state: ActorState::Idle,
             asset,
         }
     }
 
-    pub fn x(&self) -> f64 {
+    pub fn x(&self) -> Unit {
         self.position.0
     }
     pub fn idle(&mut self) {
@@ -40,11 +41,11 @@ impl Actor {
         self.state = ActorState::RunningRight;
     }
 
-    pub fn set_position(&mut self, x: f64, y: f64) {
+    pub fn set_position(&mut self, x: Unit, y: Unit) {
         self.position.0 = x;
         self.position.1 = y;
     }
-    pub fn offset_position(&mut self, x: f64, y: f64, delta_time: f64) {
+    pub fn offset_position(&mut self, x: Unit, y: Unit, delta_time: Unit) {
         self.position.0 += x * delta_time;
         self.position.1 += y * delta_time;
     }
@@ -64,8 +65,8 @@ impl Actor {
             &texture,
             rect!(offset, 0, 32, 32),
             rect!(
-                self.position.0,
-                self.position.1,
+                (self.position.0.value() as f64 * PIXEL_PER_DOT) / 1000.0,
+                (self.position.1.value() as f64 * PIXEL_PER_DOT) / 1000.0,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
             ),

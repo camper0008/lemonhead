@@ -5,6 +5,7 @@ use sdl2::{image::LoadTexture, render::WindowCanvas};
 
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_wallpaper};
+use crate::logic::Unit;
 use crate::rect;
 use crate::state::State;
 use crate::tileset::Tile;
@@ -143,15 +144,15 @@ impl Scene for ChildRoom {
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
         if state.child_room.child_stabs < 3 {
-            items.push(5, Interactables::Child);
+            items.push(Unit::from_units(5), Interactables::Child);
         }
         if state.child_room.child_stabs > 0 {
-            items.push(1, Interactables::ExitDoor);
+            items.push(Unit::from_units(1), Interactables::ExitDoor);
         }
         items
     }
 
-    fn interact(&self, state: &mut crate::state::State, position: f64) {
+    fn interact(&self, state: &mut crate::state::State, position: Unit) {
         let Some(closest) = self.closest_item_within_distance(state, position) else {
             return;
         };

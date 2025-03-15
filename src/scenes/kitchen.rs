@@ -6,6 +6,7 @@ use sdl2::{image::LoadTexture, render::WindowCanvas};
 use super::{InteractableId, Item, Items, Scene};
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_item, draw_wallpaper};
+use crate::logic::Unit;
 use crate::rect;
 use crate::state::{all_coins_collected, State};
 use crate::tileset::Tile;
@@ -141,28 +142,28 @@ impl Scene for Kitchen {
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
 
-        items.push(1, Interactables::ExitDoor);
+        items.push(Unit::from_units(1), Interactables::ExitDoor);
 
         if !state.kitchen.coins[0] {
-            items.push(3, Interactables::Coin0);
+            items.push(Unit::from_units(3), Interactables::Coin0);
         }
         if !state.kitchen.coins[1] {
-            items.push(4, Interactables::Coin1);
+            items.push(Unit::from_units(4), Interactables::Coin1);
         }
         if !state.kitchen.coins[2] {
-            items.push(5, Interactables::Coin2);
+            items.push(Unit::from_units(5), Interactables::Coin2);
         }
         if all_coins_collected(&state.kitchen.coins) {
-            items.push(8, Interactables::LivingRoomDoor);
+            items.push(Unit::from_units(8), Interactables::LivingRoomDoor);
         }
         if state.living_room.confronted && !state.kitchen.weapon_collected {
-            items.push(6, Interactables::Weapon);
+            items.push(Unit::from_units(6), Interactables::Weapon);
         }
 
         items
     }
 
-    fn interact(&self, state: &mut crate::state::State, position: f64) {
+    fn interact(&self, state: &mut crate::state::State, position: Unit) {
         let Some(closest) = self.closest_item_within_distance(state, position) else {
             return;
         };

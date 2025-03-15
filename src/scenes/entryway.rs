@@ -6,6 +6,7 @@ use sdl2::{image::LoadTexture, render::WindowCanvas};
 use super::{InteractableId, Item, Items, Scene};
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_item, draw_wallpaper};
+use crate::logic::Unit;
 use crate::rect;
 use crate::state::{all_coins_collected, State};
 use crate::tileset::Tile;
@@ -156,29 +157,29 @@ impl Scene for Entryway {
 
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
-        items.push(1, Interactables::ExitDoor);
+        items.push(Unit::from_units(1), Interactables::ExitDoor);
         if !state.entryway.coins[0] {
-            items.push(3, Interactables::Coin0);
+            items.push(Unit::from_units(3), Interactables::Coin0);
         }
         if !state.entryway.coins[1] {
-            items.push(4, Interactables::Coin1);
+            items.push(Unit::from_units(4), Interactables::Coin1);
         }
         if !state.entryway.coins[2] {
-            items.push(5, Interactables::Coin2);
+            items.push(Unit::from_units(5), Interactables::Coin2);
         }
         if !state.entryway.coins[3] {
-            items.push(6, Interactables::Coin3);
+            items.push(Unit::from_units(6), Interactables::Coin3);
         }
         if all_coins_collected(&state.entryway.coins) {
-            items.push(8, Interactables::KitchenDoor);
+            items.push(Unit::from_units(8), Interactables::KitchenDoor);
         }
         if state.murder_living_room.dad_dead {
-            items.push(4, Interactables::ChildDoor);
+            items.push(Unit::from_units(4), Interactables::ChildDoor);
         }
         items
     }
 
-    fn interact(&self, state: &mut crate::state::State, position: f64) {
+    fn interact(&self, state: &mut crate::state::State, position: Unit) {
         let Some(closest) = self.closest_item_within_distance(state, position) else {
             return;
         };

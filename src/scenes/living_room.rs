@@ -7,6 +7,7 @@ use super::{InteractableId, Item, Items, Scene};
 use crate::actor::Actor;
 use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_item, draw_wallpaper};
+use crate::logic::Unit;
 use crate::rect;
 use crate::state::State;
 use crate::tileset::Tile;
@@ -121,7 +122,7 @@ impl Scene for LivingRoom {
         Ok(())
     }
 
-    fn interact(&self, state: &mut crate::state::State, position: f64) {
+    fn interact(&self, state: &mut crate::state::State, position: Unit) {
         let Some(closest) = self.closest_item_within_distance(state, position) else {
             return;
         };
@@ -149,14 +150,14 @@ impl Scene for LivingRoom {
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
         if !state.living_room.coins[0] {
-            items.push(3, Interactables::Coin0);
+            items.push(Unit::from_units(3), Interactables::Coin0);
         }
         if !state.living_room.coins[1] {
-            items.push(8, Interactables::Coin1);
+            items.push(Unit::from_units(8), Interactables::Coin1);
         }
 
         if state.living_room.coins.iter().all(|v| !v) {
-            items.push(1, Interactables::ExitDoor);
+            items.push(Unit::from_units(1), Interactables::ExitDoor);
         }
 
         items

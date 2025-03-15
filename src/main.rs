@@ -6,6 +6,7 @@ mod game;
 mod globals;
 mod good_ending;
 mod helper;
+mod logic;
 mod menu;
 mod scenes;
 mod state;
