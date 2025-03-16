@@ -5,7 +5,7 @@ use sdl2::{
     event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, render::WindowCanvas, Sdl,
 };
 
-use crate::{audio::Configuration, tileset::Tile};
+use crate::{audio::Configuration, sprite::Generic};
 
 fn draw_layer_0(
     canvas: &mut WindowCanvas,
@@ -16,7 +16,7 @@ fn draw_layer_0(
 
     for i in 0..2 {
         let position = -animation_timer + f64::from(i * 10);
-        Tile::CityLayer0.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
+        Generic::CityLayer0.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
     }
 
     Ok(())
@@ -31,7 +31,7 @@ fn draw_layer_1(
 
     for i in 0..2 {
         let position = -animation_timer + f64::from(i * 10);
-        Tile::CityLayer1.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
+        Generic::CityLayer1.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
     }
 
     Ok(())
@@ -46,7 +46,7 @@ fn draw_layer_2(
 
     for i in 0..3 {
         let position = -animation_timer + f64::from(i * 16);
-        Tile::CityLayer2.draw(canvas, texture, (position, 1.0), (16.0, 8.0))?;
+        Generic::CityLayer2.draw(canvas, texture, (position, 1.0), (16.0, 8.0))?;
     }
 
     Ok(())
@@ -78,14 +78,14 @@ pub fn good_ending(
 
         let x_offset = (animation_timer % 1.0 * PI * 2.0).sin() * 0.125;
         let car = if animation_timer % 0.2 < 0.1 {
-            Tile::LemonCar0
+            Generic::LemonCar0
         } else {
-            Tile::LemonCar1
+            Generic::LemonCar1
         };
 
         car.draw(canvas, &texture, (4.0 + x_offset, 8.0), (2.0, 1.0))?;
 
-        Tile::Ground.draw(canvas, &texture, (0.0, 9.0), (10.0, 1.0))?;
+        Generic::Ground.draw(canvas, &texture, (0.0, 9.0), (10.0, 1.0))?;
 
         canvas.present();
         for event in sdl_context.event_pump()?.poll_iter() {

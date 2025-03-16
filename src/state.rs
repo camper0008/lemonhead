@@ -2,7 +2,7 @@ use std::sync::mpsc::Sender;
 
 use crate::audio::Configuration;
 use crate::logic::Unit;
-use crate::scenes::Scenes;
+// use crate::scenes::Scenes;
 
 pub fn all_coins_collected<const N: usize>(coins: &[bool; N]) -> bool {
     coins.iter().all(|v| *v)
@@ -28,7 +28,7 @@ pub struct Kitchen {
 pub struct LivingRoom {
     pub coins: [bool; 2],
     pub dad_confrontation_progress: f64,
-    pub confronted: bool,
+    pub has_escaped_dad: bool,
 }
 
 pub struct MurderLivingRoom {
@@ -50,6 +50,8 @@ pub enum EndingChosen {
     Ascended,
     Escaped,
 }
+
+struct Scenes;
 
 pub struct State<'a> {
     pub tutorial: Tutorial,
@@ -81,7 +83,7 @@ impl<'a> State<'a> {
             living_room: LivingRoom {
                 coins: [false; 2],
                 dad_confrontation_progress: 0.0,
-                confronted: false,
+                has_escaped_dad: false,
             },
             murder_living_room: MurderLivingRoom {
                 murderous_intent: false,

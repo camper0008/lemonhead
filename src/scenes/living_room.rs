@@ -10,7 +10,7 @@ use crate::helper::{draw_ground, draw_item, draw_wallpaper};
 use crate::logic::Unit;
 use crate::rect;
 use crate::state::State;
-use crate::tileset::Tile;
+use crate::sprite::Generic;
 
 use super::Scenes;
 
@@ -54,19 +54,19 @@ impl LivingRoom {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
-        draw_wallpaper(canvas, &texture, &Tile::StripeWallpaper)?;
+        draw_wallpaper(canvas, &texture, &Generic::StripeWallpaper)?;
 
-        Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Generic::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
-        Tile::TreeDayPicture.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Tile::HousePicture.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Tile::Couch.draw(canvas, &texture, (6.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Generic::TreeDayPicture.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Generic::HousePicture.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Generic::Couch.draw(canvas, &texture, (6.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         if !state.living_room.coins[0] {
-            draw_item(canvas, &texture, &Tile::Coin, 3.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 3.0, animation_timer)?;
         }
         if !state.living_room.coins[1] {
-            draw_item(canvas, &texture, &Tile::Coin, 8.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 8.0, animation_timer)?;
         }
 
         Ok(())
@@ -128,7 +128,7 @@ impl Scene for LivingRoom {
         state.send_audio("assets/click.ogg");
         match closest.id().into() {
             Interactables::ExitDoor => {
-                state.living_room.confronted = true;
+                state.living_room.has_escaped_dad = true;
                 state.scene_changed = Some((8.into(), Scenes::Kitchen));
             }
             Interactables::Coin0 => {

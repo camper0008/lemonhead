@@ -8,7 +8,7 @@ use crate::helper::{draw_ground, draw_wallpaper};
 use crate::logic::Unit;
 use crate::rect;
 use crate::state::State;
-use crate::tileset::Tile;
+use crate::sprite::Generic;
 
 use super::{InteractableId, Item, Items, Scene};
 
@@ -46,13 +46,13 @@ impl ChildRoom {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
-        draw_wallpaper(canvas, &texture, &Tile::DotWallpaper)?;
-        Tile::DoorOpen.draw(canvas, &texture, (1, GROUND_LEVEL), (1, 1))?;
+        draw_wallpaper(canvas, &texture, &Generic::DotWallpaper)?;
+        Generic::DoorOpen.draw(canvas, &texture, (1, GROUND_LEVEL), (1, 1))?;
 
-        Tile::ChildPoster.draw(canvas, &texture, (3, GROUND_LEVEL), (1, 1))?;
-        Tile::Computer.draw(canvas, &texture, (4, GROUND_LEVEL), (1, 1))?;
-        Tile::OfficeChair.draw(canvas, &texture, (4, GROUND_LEVEL), (1, 1))?;
-        Tile::Bed.draw(canvas, &texture, (6, GROUND_LEVEL), (1, 1))?;
+        Generic::ChildPoster.draw(canvas, &texture, (3, GROUND_LEVEL), (1, 1))?;
+        Generic::Computer.draw(canvas, &texture, (4, GROUND_LEVEL), (1, 1))?;
+        Generic::OfficeChair.draw(canvas, &texture, (4, GROUND_LEVEL), (1, 1))?;
+        Generic::Bed.draw(canvas, &texture, (6, GROUND_LEVEL), (1, 1))?;
 
         Ok(())
     }

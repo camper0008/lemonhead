@@ -1,73 +1,43 @@
-#[warn(clippy::unwrap_used)]
-mod actor;
+#![warn(clippy::unwrap_used)]
 mod audio;
-mod dead_ending;
-mod game;
+mod ctx;
 mod globals;
-mod good_ending;
-mod helper;
 mod logic;
 mod menu;
-mod scenes;
+mod sdl_ctx;
+mod sprite;
 mod state;
-mod tileset;
-mod ui_ctx;
+
+use std::time::Duration;
 
 use audio::{audio_thread, Configuration};
-use dead_ending::dead_ending;
-use game::{game, Action};
-use good_ending::good_ending;
+use ctx::{Ctx, Key};
 use menu::menu;
-use sdl2::render::WindowCanvas;
-
-use globals::PIXEL_PER_DOT;
-use sdl2::image::InitFlag;
-use sdl2::video::Window;
-use sdl2::Sdl;
-
-fn prepare_window(sdl_context: &Sdl) -> Result<Window, String> {
-    let video_subsystem = sdl_context.video()?;
-    let _image_context = sdl2::image::init(InitFlag::PNG | InitFlag::JPG)?;
-    let window = video_subsystem
-        .window(
-            "the adventures of lemonhead",
-            PIXEL_PER_DOT as u32 * 10,
-            PIXEL_PER_DOT as u32 * 10,
-        )
-        .position_centered()
-        .resizable()
-        .maximized()
-        .build()
-        .map_err(|e| e.to_string())?;
-    Ok(window)
-}
-
-fn prepare_canvas(window: Window) -> Result<WindowCanvas, String> {
-    window
-        .into_canvas()
-        .software()
-        .build()
-        .map_err(|e| e.to_string())
-}
+use sdl_ctx::SdlCtx;
 
 fn main() -> Result<(), String> {
-    let sdl_context = sdl2::init()?;
-    let window = prepare_window(&sdl_context)?;
-    let mut canvas = prepare_canvas(window)?;
-
     let music_effect_sender = audio_thread();
     music_effect_sender
         .send(Configuration::Repeat(true))
         .map_err(|e| e.to_string())?;
 
+    let mut ctx = SdlCtx::new()?;
+    let mut seconds_elapsed = 0.0;
     loop {
-        menu(&sdl_context, &mut canvas, &music_effect_sender)?;
-        let action = game(&sdl_context, &mut canvas, &music_effect_sender)?;
-        match action {
-            Action::Dead => dead_ending(&sdl_context, &mut canvas, &music_effect_sender)?,
-            Action::GoodEnding => good_ending(&sdl_context, &mut canvas, &music_effect_sender)?,
-            Action::Quit => break,
-        };
+        ctx.pre_step()?;
+        if ctx.key_down(Key::Quit) {
+            break;
+        }
+        menu(&mut ctx, seconds_elapsed, &music_effect_sender)?;
+        // game_step(&sdl_context, &mut canvas, &music_effect_sender)?;
+        // match action {
+        //     Action::Dead => dead_ending(&sdl_context, &mut canvas, &music_effect_sender)?,
+        //     Action::GoodEnding => good_ending(&sdl_context, &mut canvas, &music_effect_sender)?,
+        //     Action::Quit => break,
+        // };
+        ctx.post_step();
+        seconds_elapsed += 1.0 / 60.0;
+        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
     Ok(())

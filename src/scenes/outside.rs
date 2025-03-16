@@ -10,7 +10,7 @@ use crate::helper::{draw_ground, draw_item};
 use crate::logic::Unit;
 use crate::rect;
 use crate::state::{EndingChosen, State};
-use crate::tileset::Tile;
+use crate::sprite::Generic;
 
 use super::Scenes;
 
@@ -60,35 +60,35 @@ impl Outside {
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let ascension = texture_creator.load_texture(Path::new("assets/ascension.png"))?;
 
-        Tile::Bike.draw(canvas, &texture, (1, GROUND_LEVEL), (1, 1))?;
+        Generic::Bike.draw(canvas, &texture, (1, GROUND_LEVEL), (1, 1))?;
 
         for i in (0..=2).map(Unit::new) {
-            Tile::HouseBrick.draw(canvas, &texture, ((HOUSE_OFFSET + i), GROUND_LEVEL), (1, 1))?;
+            Generic::HouseBrick.draw(canvas, &texture, ((HOUSE_OFFSET + i), GROUND_LEVEL), (1, 1))?;
         }
 
         for x in 0..10 {
-            Tile::Grass.draw(canvas, &texture, (x, GROUND_LEVEL), (1, 1))?;
+            Generic::Grass.draw(canvas, &texture, (x, GROUND_LEVEL), (1, 1))?;
         }
 
         if state.child_room.child_dead() {
-            Tile::LemonSun.draw(canvas, &texture, (1, 1), (1, 1))?;
+            Generic::LemonSun.draw(canvas, &texture, (1, 1), (1, 1))?;
         } else {
-            Tile::Sun.draw(canvas, &texture, (1, 1), (1, 1))?;
+            Generic::Sun.draw(canvas, &texture, (1, 1), (1, 1))?;
         }
 
-        Tile::LeftTriangle.draw(
+        Generic::LeftTriangle.draw(
             canvas,
             &texture,
             (HOUSE_OFFSET, GROUND_LEVEL - 1.into()),
             (1, 1),
         )?;
-        Tile::Block.draw(
+        Generic::Block.draw(
             canvas,
             &texture,
             ((HOUSE_OFFSET + 1.into()), GROUND_LEVEL - Unit::new(1)),
             (1, 1),
         )?;
-        Tile::RightTriangle.draw(
+        Generic::RightTriangle.draw(
             canvas,
             &texture,
             ((HOUSE_OFFSET + 2.into()), GROUND_LEVEL - Unit::new(1)),
@@ -96,9 +96,9 @@ impl Outside {
         )?;
 
         let door_texture = if state.outside.key_collected {
-            Tile::DoorOpen
+            Generic::DoorOpen
         } else {
-            Tile::DoorClosed
+            Generic::DoorClosed
         };
 
         door_texture.draw(
@@ -130,7 +130,7 @@ impl Outside {
         }
 
         if !state.outside.key_collected {
-            draw_item(canvas, &texture, &Tile::Key, 3, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Key, 3, animation_timer)?;
         }
 
         Ok(())
@@ -168,7 +168,7 @@ impl Scene for Outside {
             items.push(3, Interactables::Ascension);
         }
 
-        if state.living_room.confronted
+        if state.living_room.has_escaped_dad
             && state.ending_chosen.is_none()
             && !state.child_room.child_dead()
         {
@@ -192,7 +192,7 @@ impl Scene for Outside {
             Interactables::Door => {
                 state.scene_changed = Some((1.into(), Scenes::Entryway));
 
-                if !state.living_room.confronted {
+                if !state.living_room.has_escaped_dad {
                     state.change_background_track("assets/lemonhead.ogg");
                 }
             }

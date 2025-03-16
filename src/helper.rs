@@ -6,8 +6,8 @@ use sdl2::render::WindowCanvas;
 use crate::{
     globals::{GROUND_LEVEL, PIXEL_PER_DOT},
     logic::Unit,
+    sprite::Tile,
     state::State,
-    tileset::Tile,
 };
 
 #[macro_export]
@@ -21,7 +21,7 @@ pub fn draw_item(
     canvas: &mut WindowCanvas,
     texture: &Texture,
     tile: &Tile,
-    position: impl Into<Unit>,
+    position: f64,
     animation_timer: f64,
 ) -> Result<(), String> {
     let offset = (animation_timer * PI * 2.0).sin() * 0.125;
@@ -49,7 +49,7 @@ pub fn draw_interact_prompt(
     let murderous_intent_while_dad_alive =
         state.murder_living_room.murderous_intent && !state.murder_living_room.dad_dead;
 
-    let intent_undecided = state.living_room.confronted && !state.kitchen.weapon_collected;
+    let intent_undecided = state.living_room.has_escaped_dad && !state.kitchen.weapon_collected;
 
     let x_size = if murderous_intent_while_dad_alive || intent_undecided {
         2.0
@@ -96,9 +96,9 @@ pub fn draw_ground(canvas: &mut WindowCanvas) -> Result<(), String> {
     let texture_creator = canvas.texture_creator();
     let tileset = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
-    Tile::Ground.draw(canvas, &tileset, (0, GROUND_LEVEL + 1.into()), (10, 1))?;
+    Generic::Ground.draw(canvas, &tileset, (0, GROUND_LEVEL + 1.into()), (10, 1))?;
 
-    Tile::Block.draw(
+    Generic::Block.draw(
         canvas,
         &tileset,
         (0, GROUND_LEVEL + 2.into()),
@@ -111,7 +111,7 @@ pub fn draw_ground(canvas: &mut WindowCanvas) -> Result<(), String> {
 pub fn draw_wallpaper(
     canvas: &mut WindowCanvas,
     texture: &Texture,
-    tile: &Tile,
+    tile: &Generic,
 ) -> Result<(), String> {
     for x in 0..10 {
         for y in 0..=GROUND_LEVEL.milliunits() / 1000 {

@@ -9,7 +9,7 @@ use crate::helper::{draw_ground, draw_item, draw_wallpaper};
 use crate::logic::Unit;
 use crate::rect;
 use crate::state::{all_coins_collected, State};
-use crate::tileset::Tile;
+use crate::sprite::Generic;
 
 use super::Scenes;
 
@@ -63,24 +63,24 @@ impl Kitchen {
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
 
-        draw_wallpaper(canvas, &texture, &Tile::KitchenBrick)?;
+        draw_wallpaper(canvas, &texture, &Generic::KitchenBrick)?;
 
-        Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Generic::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
-        Tile::Oven.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Generic::Oven.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         let picture = if state.murder_living_room.dad_dead {
-            Tile::LemonNightPicture
+            Generic::LemonNightPicture
         } else {
-            Tile::TreeNightPicture
+            Generic::TreeNightPicture
         };
 
         picture.draw(canvas, &texture, (9.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         let living_room_door = if all_coins_collected(&state.kitchen.coins) {
-            Tile::DoorOpen
+            Generic::DoorOpen
         } else {
-            Tile::DoorClosed
+            Generic::DoorClosed
         };
 
         living_room_door.draw(canvas, &texture, (8.0, GROUND_LEVEL), (1.0, 1.0))?;
@@ -110,16 +110,16 @@ impl Kitchen {
         }
 
         if !state.kitchen.coins[0] {
-            draw_item(canvas, &texture, &Tile::Coin, 3.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 3.0, animation_timer)?;
         }
         if !state.kitchen.coins[1] {
-            draw_item(canvas, &texture, &Tile::Coin, 4.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 4.0, animation_timer)?;
         }
         if !state.kitchen.coins[2] {
-            draw_item(canvas, &texture, &Tile::Coin, 5.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 5.0, animation_timer)?;
         }
         if !state.kitchen.weapon_collected {
-            draw_item(canvas, &texture, &Tile::Weapon, 6.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Weapon, 6.0, animation_timer)?;
         }
 
         Ok(())
@@ -156,7 +156,7 @@ impl Scene for Kitchen {
         if all_coins_collected(&state.kitchen.coins) {
             items.push(8, Interactables::LivingRoomDoor);
         }
-        if state.living_room.confronted && !state.kitchen.weapon_collected {
+        if state.living_room.has_escaped_dad && !state.kitchen.weapon_collected {
             items.push(6, Interactables::Weapon);
         }
 
@@ -170,7 +170,7 @@ impl Scene for Kitchen {
         state.send_audio("assets/click.ogg");
         match closest.id().into() {
             Interactables::ExitDoor => {
-                if state.living_room.confronted && !state.kitchen.weapon_collected {
+                if state.living_room.has_escaped_dad && !state.kitchen.weapon_collected {
                     return;
                 }
                 state.scene_changed = Some((8.into(), Scenes::Entryway));
@@ -183,7 +183,7 @@ impl Scene for Kitchen {
                 state.change_background_track("assets/heartbeat.ogg");
             }
             Interactables::LivingRoomDoor => {
-                if state.living_room.confronted && !state.kitchen.weapon_collected {
+                if state.living_room.has_escaped_dad && !state.kitchen.weapon_collected {
                     return;
                 }
                 let scene = if state.kitchen.weapon_collected {

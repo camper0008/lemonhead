@@ -9,7 +9,7 @@ use crate::helper::{draw_ground, draw_wallpaper};
 use crate::logic::Unit;
 use crate::rect;
 use crate::state::State;
-use crate::tileset::Tile;
+use crate::sprite::Generic;
 
 use super::Scenes;
 
@@ -45,13 +45,13 @@ impl MurderLivingRoom {
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
-        draw_wallpaper(canvas, &texture, &Tile::StripeWallpaper)?;
+        draw_wallpaper(canvas, &texture, &Generic::StripeWallpaper)?;
 
-        Tile::DoorOpen.draw(canvas, &texture, (Unit::new(1), GROUND_LEVEL), (1, 1))?;
+        Generic::DoorOpen.draw(canvas, &texture, (Unit::new(1), GROUND_LEVEL), (1, 1))?;
 
-        Tile::TreeDayPicture.draw(canvas, &texture, (3, GROUND_LEVEL), (1, 1))?;
-        Tile::HousePicture.draw(canvas, &texture, (4, GROUND_LEVEL), (1, 1))?;
-        Tile::Couch.draw(canvas, &texture, (6, GROUND_LEVEL), (1, 1))?;
+        Generic::TreeDayPicture.draw(canvas, &texture, (3, GROUND_LEVEL), (1, 1))?;
+        Generic::HousePicture.draw(canvas, &texture, (4, GROUND_LEVEL), (1, 1))?;
+        Generic::Couch.draw(canvas, &texture, (6, GROUND_LEVEL), (1, 1))?;
 
         Ok(())
     }

@@ -18,7 +18,7 @@ pub enum Action {
     Quit,
 }
 
-pub fn game(
+pub fn game_step(
     sdl_context: &Sdl,
     canvas: &mut WindowCanvas,
     music_sender: &Sender<Configuration>,
@@ -120,7 +120,7 @@ pub fn game(
             }
         }
 
-        if all_coins_collected(&state.living_room.coins) && !state.living_room.confronted {
+        if all_coins_collected(&state.living_room.coins) && !state.living_room.has_escaped_dad {
             state.living_room.dad_confrontation_progress += delta_time;
             let dad_position =
                 Unit::new_decimal(13.65 - (state.living_room.dad_confrontation_progress * 2.0));

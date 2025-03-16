@@ -1,9 +1,116 @@
-use sdl2::rect::Rect;
-use sdl2::render::{Texture, WindowCanvas};
+pub trait Sprite {
+    fn size(&self) -> (u32, u32);
+    fn offset(&self) -> (u32, u32);
+    fn path(&self) -> &'static str;
+}
 
-use crate::globals::PIXEL_PER_DOT;
-use crate::logic::Unit;
-use crate::rect;
+pub enum Lemonhead {
+    Idle,
+    IdleAlt,
+    Left,
+    LeftAlt,
+    Right,
+    RightAlt,
+}
+
+pub enum Npc {
+    Idle,
+    IdleAlt,
+    Left,
+    LeftAlt,
+    Right,
+    RightAlt,
+    Dead,
+}
+
+pub enum Actor {
+    Lemonhead(Lemonhead),
+    Dad(Npc),
+    Child(Npc),
+}
+pub enum ActorState {
+    Idle,
+    Left,
+    Right,
+}
+
+impl Actor {
+    pub fn animated_lemonhead(state: ActorState, seconds_elapsed: f64) -> Actor {
+        let use_normal = seconds_elapsed % 1.0 < 0.5;
+        let v = if use_normal {
+            match state {
+                ActorState::Idle => Lemonhead::Idle,
+                ActorState::Left => Lemonhead::Left,
+                ActorState::Right => Lemonhead::Right,
+            }
+        } else {
+            match state {
+                ActorState::Idle => Lemonhead::IdleAlt,
+                ActorState::Left => Lemonhead::LeftAlt,
+                ActorState::Right => Lemonhead::RightAlt,
+            }
+        };
+        Actor::Lemonhead(v)
+    }
+    pub fn animated_npc<F: Fn(Npc) -> Actor>(
+        npc: F,
+        state: ActorState,
+        seconds_elapsed: f64,
+    ) -> Actor {
+        let use_normal = seconds_elapsed % 1.0 < 0.5;
+        let v = if use_normal {
+            match state {
+                ActorState::Idle => Npc::Idle,
+                ActorState::Left => Npc::Left,
+                ActorState::Right => Npc::Right,
+            }
+        } else {
+            match state {
+                ActorState::Idle => Npc::IdleAlt,
+                ActorState::Left => Npc::LeftAlt,
+                ActorState::Right => Npc::RightAlt,
+            }
+        };
+        npc(v)
+    }
+}
+
+impl Sprite for Actor {
+    fn size(&self) -> (u32, u32) {
+        (32, 32)
+    }
+
+    fn offset(&self) -> (u32, u32) {
+        let x = match self {
+            Actor::Lemonhead(lemon) => match lemon {
+                Lemonhead::Idle => 0,
+                Lemonhead::IdleAlt => 1,
+                Lemonhead::Right => 2,
+                Lemonhead::RightAlt => 3,
+                Lemonhead::Left => 4,
+                Lemonhead::LeftAlt => 5,
+            },
+            Actor::Child(npc) | Actor::Dad(npc) => match npc {
+                Npc::Idle => 0,
+                Npc::IdleAlt => 1,
+                Npc::Right => 2,
+                Npc::RightAlt => 3,
+                Npc::Left => 4,
+                Npc::LeftAlt => 5,
+                Npc::Dead => 6,
+            },
+        };
+        (x * 32, 0)
+    }
+
+    fn path(&self) -> &'static str {
+        match self {
+            Actor::Lemonhead(_) => "assets/lemonhead.png",
+            Actor::Dad(_) => "assets/dad.png",
+            Actor::Child(_) => "assets/child.png",
+        }
+    }
+}
 
 pub enum Tile {
     LemonAngel0,
@@ -55,38 +162,13 @@ pub enum Tile {
     IntroductionGoalsText,
     RememberText,
     VoicesText,
+    Logo,
 }
 
-impl Tile {
-    pub fn draw<'a, A, B, C, D>(
-        &self,
-        canvas: &mut WindowCanvas,
-        texture: &'a Texture<'a>,
-        dest_position: (A, B),
-        dest_size: (C, D),
-    ) -> Result<(), String>
-    where
-        A: Into<Unit>,
-        B: Into<Unit>,
-        C: Into<Unit>,
-        D: Into<Unit>,
-    {
-        let src_position = self.spritesheet_offset();
-        let src_size = self.size();
-        canvas.copy(
-            texture,
-            rect!(src_position.0, src_position.1, src_size.0, src_size.1),
-            rect!(
-                (dest_position.0.into().decimal()) * PIXEL_PER_DOT,
-                (dest_position.1.into().decimal()) * PIXEL_PER_DOT,
-                (dest_size.0.into().decimal()) * PIXEL_PER_DOT,
-                (dest_size.1.into().decimal()) * PIXEL_PER_DOT
-            ),
-        )
-    }
-
+impl Sprite for Tile {
     fn size(&self) -> (u32, u32) {
         let (x, y) = match self {
+            Tile::Logo => (4, 4),
             Tile::CityLayer2 | Tile::LemonCar0 | Tile::LemonCar1 => (4, 1),
             Tile::IntroductionText => (4, 1),
             Tile::IntroductionGoalsText => (8, 1),
@@ -97,7 +179,8 @@ impl Tile {
         let (x, y) = (x * 16, y * 16);
         (x, y)
     }
-    fn spritesheet_offset(&self) -> (u32, u32) {
+
+    fn offset(&self) -> (u32, u32) {
         let (x, y) = match self {
             Tile::LemonAngel0 => (12, 8),
             Tile::LemonAngel1 => (12, 10),
@@ -148,8 +231,13 @@ impl Tile {
             Tile::IntroductionGoalsText => (0, 15),
             Tile::RememberText => (4, 14),
             Tile::VoicesText => (8, 15),
+            Tile::Logo => (10, 12),
         };
         let (x, y) = (x * 16, y * 16);
         (x, y)
+    }
+
+    fn path(&self) -> &'static str {
+        "assets/tile.png"
     }
 }

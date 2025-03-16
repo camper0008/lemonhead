@@ -9,7 +9,7 @@ use crate::helper::{draw_ground, draw_item, draw_wallpaper};
 use crate::logic::Unit;
 use crate::rect;
 use crate::state::{all_coins_collected, State};
-use crate::tileset::Tile;
+use crate::sprite::Generic;
 
 use super::Scenes;
 
@@ -66,18 +66,18 @@ impl Entryway {
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
 
-        draw_wallpaper(canvas, &texture, &Tile::StripeWallpaper)?;
-        Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
+        draw_wallpaper(canvas, &texture, &Generic::StripeWallpaper)?;
+        Generic::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         let picture_tile = if state.child_room.child_stabs > 0 {
-            Tile::LemonDayPicture
+            Generic::LemonDayPicture
         } else {
-            Tile::TreeDayPicture
+            Generic::TreeDayPicture
         };
 
         picture_tile.draw(canvas, &texture, (7.0, GROUND_LEVEL), (1.0, 1.0))?;
 
-        Tile::HousePicture.draw(canvas, &texture, (2.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Generic::HousePicture.draw(canvas, &texture, (2.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         if state.murder_living_room.dad_dead {
             canvas.copy(
@@ -93,23 +93,23 @@ impl Entryway {
         }
 
         let kitchen_door = if all_coins_collected(&state.entryway.coins) {
-            Tile::DoorOpen
+            Generic::DoorOpen
         } else {
-            Tile::DoorClosed
+            Generic::DoorClosed
         };
 
         kitchen_door.draw(canvas, &texture, (8.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         let child_door = if state.murder_living_room.dad_dead {
-            Tile::DoorOpen
+            Generic::DoorOpen
         } else {
-            Tile::DoorClosed
+            Generic::DoorClosed
         };
 
         child_door.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
 
         if !state.murder_living_room.dad_dead {
-            Tile::ChildSticker.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
+            Generic::ChildSticker.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
         }
 
         if state.murder_living_room.dad_dead && state.child_room.child_stabs == 0 {
@@ -126,16 +126,16 @@ impl Entryway {
         }
 
         if !state.entryway.coins[0] {
-            draw_item(canvas, &texture, &Tile::Coin, 3.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 3.0, animation_timer)?;
         }
         if !state.entryway.coins[1] {
-            draw_item(canvas, &texture, &Tile::Coin, 4.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 4.0, animation_timer)?;
         }
         if !state.entryway.coins[2] {
-            draw_item(canvas, &texture, &Tile::Coin, 5.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 5.0, animation_timer)?;
         }
         if !state.entryway.coins[3] {
-            draw_item(canvas, &texture, &Tile::Coin, 6.0, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 6.0, animation_timer)?;
         }
 
         Ok(())

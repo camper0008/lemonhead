@@ -8,7 +8,7 @@ use crate::globals::GROUND_LEVEL;
 use crate::helper::{draw_ground, draw_item};
 use crate::logic::Unit;
 use crate::state::State;
-use crate::tileset::Tile;
+use crate::sprite::Generic;
 
 use super::Scenes;
 
@@ -41,7 +41,7 @@ impl From<InteractableId> for Interactables {
 
 impl Tutorial {
     fn draw_scenery(&self, canvas: &mut WindowCanvas, texture: &Texture) -> Result<(), String> {
-        Tile::Bike.draw(
+        Generic::Bike.draw(
             canvas,
             texture,
             (Unit::new(8), GROUND_LEVEL),
@@ -49,7 +49,7 @@ impl Tutorial {
         )?;
 
         for x in 0..10 {
-            Tile::Grass.draw(
+            Generic::Grass.draw(
                 canvas,
                 texture,
                 (Unit::new(x), GROUND_LEVEL),
@@ -57,7 +57,7 @@ impl Tutorial {
             )?;
         }
 
-        Tile::Sun.draw(
+        Generic::Sun.draw(
             canvas,
             texture,
             (Unit::new(1), Unit::new(1)),
@@ -74,33 +74,33 @@ impl Tutorial {
         state: &State,
     ) -> Result<(), String> {
         if !state.tutorial.coin {
-            Tile::IntroductionText.draw(
+            Generic::IntroductionText.draw(
                 canvas,
                 texture,
                 (Unit::new(3), Unit::new(2)),
                 (Unit::new(4), Unit::new(1)),
             )?;
-            Tile::IntroductionGoalsText.draw(
+            Generic::IntroductionGoalsText.draw(
                 canvas,
                 texture,
                 (Unit::new(1), Unit::new(3)),
                 (Unit::new(8), Unit::new(1)),
             )?;
         } else {
-            Tile::RememberText.draw(
+            Generic::RememberText.draw(
                 canvas,
                 texture,
                 (Unit::new(2), Unit::new_decimal(2.5)),
                 (Unit::new(6), Unit::new(1)),
             )?;
-            Tile::VoicesText.draw(
+            Generic::VoicesText.draw(
                 canvas,
                 texture,
                 (Unit::new(6), Unit::new_decimal(9.25)),
                 (Unit::new(1), Unit::new_decimal(0.5)),
             )?;
         }
-        Tile::Bike.draw(
+        Generic::Bike.draw(
             canvas,
             texture,
             (Unit::new(8), GROUND_LEVEL),
@@ -108,7 +108,7 @@ impl Tutorial {
         )?;
 
         for x in 0..10 {
-            Tile::Grass.draw(
+            Generic::Grass.draw(
                 canvas,
                 texture,
                 (Unit::new(x), GROUND_LEVEL),
@@ -116,7 +116,7 @@ impl Tutorial {
             )?;
         }
 
-        Tile::Sun.draw(
+        Generic::Sun.draw(
             canvas,
             texture,
             (Unit::new(1), Unit::new(1)),
@@ -141,7 +141,7 @@ impl Scene for Tutorial {
         self.draw_scenery(canvas, &texture)?;
         self.draw_text(canvas, &texture, state)?;
         if !state.tutorial.coin {
-            draw_item(canvas, &texture, &Tile::Coin, 4, animation_timer)?;
+            draw_item(canvas, &texture, &Generic::Coin, 4, animation_timer)?;
         }
 
         Ok(())
