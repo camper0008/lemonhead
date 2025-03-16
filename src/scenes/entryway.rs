@@ -1,15 +1,9 @@
-use std::path::Path;
-
-use sdl2::rect::Rect;
-use sdl2::{image::LoadTexture, render::WindowCanvas};
-
 use super::{InteractableId, Item, Items, Scene};
-use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{draw_ground, draw_item, draw_wallpaper};
-use crate::logic::Unit;
-use crate::rect;
-use crate::state::{all_coins_collected, State};
-use crate::sprite::Generic;
+use crate::ctx::{Ctx, Effect, Music};
+use crate::globals::GROUND_LEVEL;
+use crate::helper::CtxHelperExt;
+use crate::sprite::{Blood, Tile};
+use crate::state::State;
 
 use super::Scenes;
 
@@ -56,142 +50,110 @@ impl From<InteractableId> for Interactables {
 }
 
 impl Entryway {
-    fn draw_house(
-        &self,
-        canvas: &mut WindowCanvas,
-        state: &State,
-        animation_timer: f64,
-    ) -> Result<(), String> {
-        let texture_creator = canvas.texture_creator();
-        let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
-        let blood = texture_creator.load_texture(Path::new("assets/blood.png"))?;
+    fn draw_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
+        ctx.draw_ground()?;
+        ctx.draw_wallpaper(&Tile::StripeWallpaper)?;
 
-        draw_wallpaper(canvas, &texture, &Generic::StripeWallpaper)?;
-        Generic::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
+        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen)?;
 
         let picture_tile = if state.child_room.child_stabs > 0 {
-            Generic::LemonDayPicture
+            Tile::LemonDayPicture
         } else {
-            Generic::TreeDayPicture
+            Tile::TreeDayPicture
         };
 
-        picture_tile.draw(canvas, &texture, (7.0, GROUND_LEVEL), (1.0, 1.0))?;
+        ctx.draw_sprite((7.0, GROUND_LEVEL), (1.0, 1.0), &picture_tile)?;
 
-        Generic::HousePicture.draw(canvas, &texture, (2.0, GROUND_LEVEL), (1.0, 1.0))?;
+        ctx.draw_sprite((2.0, GROUND_LEVEL), (1.0, 1.0), &Tile::HousePicture)?;
 
         if state.murder_living_room.dad_dead {
-            canvas.copy(
-                &blood,
-                rect!(0, 0, 32, 32),
-                rect!(
-                    PIXEL_PER_DOT * 2.0,
-                    (GROUND_LEVEL.decimal()) * PIXEL_PER_DOT,
-                    PIXEL_PER_DOT,
-                    PIXEL_PER_DOT
-                ),
-            )?;
+            ctx.draw_sprite((2.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterCenter)?;
         }
 
-        let kitchen_door = if all_coins_collected(&state.entryway.coins) {
-            Generic::DoorOpen
+        let kitchen_door = if state.entryway.all_coins_collected() {
+            Tile::DoorOpen
         } else {
-            Generic::DoorClosed
+            Tile::DoorClosed
         };
 
-        kitchen_door.draw(canvas, &texture, (8.0, GROUND_LEVEL), (1.0, 1.0))?;
+        ctx.draw_sprite((8.0, GROUND_LEVEL), (1.0, 1.0), &kitchen_door)?;
 
         let child_door = if state.murder_living_room.dad_dead {
-            Generic::DoorOpen
+            Tile::DoorOpen
         } else {
-            Generic::DoorClosed
+            Tile::DoorClosed
         };
 
-        child_door.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
+        ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &child_door)?;
 
         if !state.murder_living_room.dad_dead {
-            Generic::ChildSticker.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
+            ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::ChildSticker)?;
         }
 
         if state.murder_living_room.dad_dead && state.child_room.child_stabs == 0 {
-            canvas.copy(
-                &blood,
-                rect!(32, 0, 32, 32),
-                rect!(
-                    4.0 * PIXEL_PER_DOT,
-                    (GROUND_LEVEL.decimal() - 1.0) * PIXEL_PER_DOT,
-                    PIXEL_PER_DOT,
-                    PIXEL_PER_DOT
-                ),
-            )?;
+            ctx.draw_sprite((4.0, GROUND_LEVEL - 1.0), (1.0, 1.0), &Blood::Pentagram)?;
         }
 
         if !state.entryway.coins[0] {
-            draw_item(canvas, &texture, &Generic::Coin, 3.0, animation_timer)?;
+            ctx.draw_item(&Tile::Coin, 3.0)?;
         }
         if !state.entryway.coins[1] {
-            draw_item(canvas, &texture, &Generic::Coin, 4.0, animation_timer)?;
+            ctx.draw_item(&Tile::Coin, 4.0)?;
         }
         if !state.entryway.coins[2] {
-            draw_item(canvas, &texture, &Generic::Coin, 5.0, animation_timer)?;
+            ctx.draw_item(&Tile::Coin, 5.0)?;
         }
         if !state.entryway.coins[3] {
-            draw_item(canvas, &texture, &Generic::Coin, 6.0, animation_timer)?;
+            ctx.draw_item(&Tile::Coin, 6.0)?;
         }
 
         Ok(())
     }
 }
 
-impl Scene for Entryway {
-    fn draw(
-        &self,
-        state: &crate::state::State,
-        canvas: &mut sdl2::render::WindowCanvas,
-        animation_timer: f64,
-    ) -> Result<(), String> {
-        canvas.clear();
-        self.draw_house(canvas, state, animation_timer)?;
-        draw_ground(canvas)?;
+impl<C: Ctx> Scene<C> for Entryway {
+    fn draw(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
+        self.draw_house(ctx, state)?;
         Ok(())
     }
 
-    fn prepare_items(&self, state: &State) -> Items {
+    fn prepare_items(&self, state: &State<C>) -> Items {
         let mut items = Items::new();
-        items.push(Unit::new(1), Interactables::ExitDoor);
+        items.push(1.0, Interactables::ExitDoor);
         if !state.entryway.coins[0] {
-            items.push(Unit::new(3), Interactables::Coin0);
+            items.push(3.0, Interactables::Coin0);
         }
         if !state.entryway.coins[1] {
-            items.push(Unit::new(4), Interactables::Coin1);
+            items.push(4.0, Interactables::Coin1);
         }
         if !state.entryway.coins[2] {
-            items.push(Unit::new(5), Interactables::Coin2);
+            items.push(5.0, Interactables::Coin2);
         }
         if !state.entryway.coins[3] {
-            items.push(Unit::new(6), Interactables::Coin3);
+            items.push(6.0, Interactables::Coin3);
         }
-        if all_coins_collected(&state.entryway.coins) {
-            items.push(Unit::new(8), Interactables::KitchenDoor);
+        if state.entryway.all_coins_collected() {
+            items.push(8.0, Interactables::KitchenDoor);
         }
         if state.murder_living_room.dad_dead {
-            items.push(Unit::new(4), Interactables::ChildDoor);
+            items.push(4.0, Interactables::ChildDoor);
         }
         items
     }
 
-    fn interact(&self, state: &mut crate::state::State, position: Unit) {
+    fn interact(&self, ctx: &mut C, state: &mut State<C>, position: f64) -> Result<(), C::Error> {
         let Some(closest) = self.closest_item_within_distance(state, position) else {
-            return;
+            return Ok(());
         };
-        state.send_audio("assets/click.ogg");
+        ctx.play_effect(Effect::Interact)?;
         match closest.id().into() {
             Interactables::ExitDoor => {
-                if state.murder_living_room.dad_dead && !state.child_room.child_stabs > 0 {
-                    return;
+                if state.murder_living_room.dad_dead && !state.child_room.child_dead() {
+                    return Ok(());
                 }
-                state.scene_changed = Some((7.into(), Scenes::Outside));
-                if state.child_room.child_stabs == 0 {
-                    state.change_background_track("assets/outside.ogg");
+                state.scene_changed = Some((7.0, Scenes::Outside));
+                if !state.child_room.child_dead() {
+                    ctx.set_music(Music::Outside)?;
                 }
             }
             Interactables::Coin0 => state.entryway.coins[0] = true,
@@ -199,12 +161,13 @@ impl Scene for Entryway {
             Interactables::Coin2 => state.entryway.coins[2] = true,
             Interactables::Coin3 => state.entryway.coins[3] = true,
             Interactables::ChildDoor => {
-                state.change_background_track("assets/heartbeat-child-with-lemon.ogg");
-                state.scene_changed = Some((1.into(), Scenes::ChildRoom));
+                ctx.set_music(Music::HeartbeatChildWithLemon)?;
+                state.scene_changed = Some((1.0, Scenes::ChildRoom));
             }
             Interactables::KitchenDoor => {
-                state.scene_changed = Some((1.into(), Scenes::Kitchen));
+                state.scene_changed = Some((1.0, Scenes::Kitchen));
             }
         }
+        Ok(())
     }
 }

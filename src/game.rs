@@ -1,138 +1,124 @@
-use std::{collections::HashMap, sync::mpsc::Sender, time::Duration};
-
-use sdl2::{event::Event, keyboard::Keycode, render::WindowCanvas, Sdl};
+use std::time::Instant;
 
 use crate::{
-    actor::Actor,
-    audio::{audio_thread, Configuration},
+    ctx::{Ctx, Key},
     globals::GROUND_LEVEL,
-    helper::draw_interact_prompt,
-    logic::Unit,
     scenes::Scenes,
-    state::{all_coins_collected, EndingChosen, State},
+    sprite::{self, ActorState, Text},
+    state::{EndingChosen, State},
 };
 
-pub enum Action {
+pub enum GameResult {
     GoodEnding,
     Dead,
     Quit,
 }
 
-pub fn game_step(
-    sdl_context: &Sdl,
-    canvas: &mut WindowCanvas,
-    music_sender: &Sender<Configuration>,
-) -> Result<Action, String> {
-    let mut keys_down = HashMap::new();
+struct Lemonhead {
+    x: f64,
+    y: f64,
+    state: ActorState,
+}
 
-    let sound_effect_sender = audio_thread();
+fn draw_interact_prompt<C: Ctx>(ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
+    let offset = (ctx.seconds_elapsed() * std::f64::consts::PI * 2.0).sin() * 0.05;
 
-    let mut animation_timer = 0.0;
-    let mut escape_timer = 0.0;
+    let text = if !state.living_room.has_escaped_dad {
+        Text::Space
+    } else if !state.kitchen.weapon_collected {
+        Text::SelfDefense
+    } else if !state.murder_living_room.dad_dead {
+        Text::NoWitnesses
+    } else if !state.child_room.child_dead() {
+        Text::OneLeft
+    } else if !state.child_room.child_stabs < 3 {
+        Text::More
+    } else {
+        Text::Ascend
+    };
 
+    let centered = (10.0 - text.width()) / 2.0;
+
+    ctx.draw_sprite((centered, 9.0 + offset), (text.width(), 1.0), &text)?;
+    Ok(())
+}
+
+pub fn game<C: Ctx>(ctx: &mut C) -> Result<GameResult, C::Error> {
     let mut scene = Scenes::Tutorial;
-    let mut state = State::new(sound_effect_sender, music_sender);
-    let mut lemonhead = Actor::new("assets/lemonhead.png");
-    lemonhead.set_position(1, GROUND_LEVEL);
-
-    state.change_background_track("assets/outside.ogg");
-
-    let action = 'game_loop: loop {
-        let delta_time = 1.0 / 60.0;
-        canvas.clear();
-        scene.inner().draw(&state, canvas, animation_timer)?;
+    let mut state = State::new();
+    let mut lemonhead = Lemonhead {
+        x: 1.0,
+        y: GROUND_LEVEL,
+        state: ActorState::Idle,
+    };
+    ctx.set_music(crate::ctx::Music::Outside)?;
+    let mut elapsed_last_iter = ctx.seconds_elapsed();
+    loop {
+        ctx.pre_step()?;
+        if ctx.key_down(Key::Quit) {
+            break Ok(GameResult::Quit);
+        }
+        scene.inner().draw(ctx, &state)?;
         if scene
             .inner()
-            .should_draw_interact_popup(&state, lemonhead.x())
+            .should_draw_interact_popup(&state, lemonhead.x)
         {
-            draw_interact_prompt(canvas, &state, animation_timer)?;
+            draw_interact_prompt(ctx, &state)?;
         }
 
-        lemonhead.idle();
+        lemonhead.state = ActorState::Idle;
 
-        if *keys_down.get(&Keycode::A).unwrap_or(&false)
-            && state.ending_chosen.is_none()
-            && lemonhead.x() > 0.into()
-        {
-            lemonhead.offset_position(-1.25, 0.0, delta_time);
-            lemonhead.run_left();
+        let delta_time = ctx.seconds_elapsed() - elapsed_last_iter;
+        elapsed_last_iter = ctx.seconds_elapsed();
+        if ctx.key_down(Key::Left) && state.ending_chosen.is_none() && lemonhead.x > 0.0 {
+            lemonhead.x -= 1.25 * delta_time;
+            lemonhead.state = ActorState::Left;
         }
 
-        if *keys_down.get(&Keycode::D).unwrap_or(&false)
-            && state.ending_chosen.is_none()
-            && lemonhead.x() < 9.into()
-        {
-            lemonhead.offset_position(1.25, 0.0, delta_time);
-            lemonhead.run_right();
+        if ctx.key_down(Key::Right) && state.ending_chosen.is_none() && lemonhead.x < 9.0 {
+            lemonhead.x += 1.25 * delta_time;
+            lemonhead.state = ActorState::Right;
         }
 
-        if *keys_down.get(&Keycode::Space).unwrap_or(&false) {
-            scene.inner().interact(&mut state, lemonhead.x());
-            keys_down.insert(Keycode::Space, false);
+        if ctx.key_down(Key::Interact) {
+            scene.inner().interact(ctx, &mut state, lemonhead.x)?;
         }
 
         if let Some(ref ending) = state.ending_chosen {
             match ending {
                 EndingChosen::Ascended => {
-                    lemonhead.offset_position(0.0, 0.25, delta_time);
+                    lemonhead.y -= 0.25 * delta_time;
                 }
                 EndingChosen::Escaped => {
-                    lemonhead.run_left();
-                    lemonhead.offset_position(0.5, 0.0, delta_time);
-                    escape_timer += delta_time;
-                    if escape_timer > 5.0 {
-                        break Action::GoodEnding;
+                    lemonhead.state = ActorState::Left;
+                    lemonhead.x -= 0.5 * delta_time;
+                    if lemonhead.x < -1.0 {
+                        break Ok(GameResult::GoodEnding);
                     }
                 }
             }
         }
 
-        lemonhead.draw(canvas, animation_timer)?;
-        canvas.present();
-        for event in sdl_context.event_pump()?.poll_iter() {
-            match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => break 'game_loop Action::Quit,
-                Event::KeyDown {
-                    keycode: Some(k @ (Keycode::A | Keycode::D | Keycode::Space)),
-                    ..
-                } => {
-                    keys_down.insert(k, true);
-                }
-                Event::KeyUp {
-                    keycode: Some(k @ (Keycode::A | Keycode::D | Keycode::Space)),
-                    ..
-                } => {
-                    keys_down.insert(k, false);
-                }
-                _ => {}
-            }
-        }
+        let use_alt = ctx.seconds_elapsed() % 0.5 > 0.25;
+        let lemon_sprite = sprite::Actor::lemonhead_sprite(&lemonhead.state, use_alt);
+        ctx.draw_sprite((lemonhead.x, lemonhead.y), (1.0, 1.0), &lemon_sprite)?;
+
         match state.scene_changed {
             None => (),
             Some((position, new_scene)) => {
                 scene = new_scene;
-                lemonhead.set_position(position, GROUND_LEVEL);
+                lemonhead.x = position;
                 state.scene_changed = None;
             }
         }
 
-        if all_coins_collected(&state.living_room.coins) && !state.living_room.has_escaped_dad {
-            state.living_room.dad_confrontation_progress += delta_time;
-            let dad_position =
-                Unit::new_decimal(13.65 - (state.living_room.dad_confrontation_progress * 2.0));
-            if dad_position <= lemonhead.x() {
-                break Action::Dead;
+        if state.living_room.all_coins_collected() && !state.living_room.has_escaped_dad {
+            state.living_room.dad_attack_seconds += delta_time;
+            let dad_position = 13.65 - (state.living_room.dad_attack_seconds * 2.0);
+            if dad_position <= lemonhead.x {
+                break Ok(GameResult::Dead);
             }
         }
-
-        animation_timer += delta_time;
-        animation_timer %= 1.0;
-        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
-    };
-
-    Ok(action)
+        ctx.post_step()?;
+    }
 }

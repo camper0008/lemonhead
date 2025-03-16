@@ -1,14 +1,11 @@
-use std::path::Path;
-
-use sdl2::render::Texture;
-use sdl2::{image::LoadTexture, render::WindowCanvas};
-
 use super::{InteractableId, Item, Items, Scene};
+use crate::ctx::Ctx;
+use crate::ctx::Effect;
+use crate::ctx::Rgb;
 use crate::globals::GROUND_LEVEL;
-use crate::helper::{draw_ground, draw_item};
-use crate::logic::Unit;
+use crate::helper::CtxHelperExt;
+use crate::sprite::Tile;
 use crate::state::State;
-use crate::sprite::Generic;
 
 use super::Scenes;
 
@@ -40,132 +37,63 @@ impl From<InteractableId> for Interactables {
 }
 
 impl Tutorial {
-    fn draw_scenery(&self, canvas: &mut WindowCanvas, texture: &Texture) -> Result<(), String> {
-        Generic::Bike.draw(
-            canvas,
-            texture,
-            (Unit::new(8), GROUND_LEVEL),
-            (Unit::new(1), Unit::new(1)),
-        )?;
+    fn draw_scenery<C: Ctx>(&self, ctx: &mut C) -> Result<(), C::Error> {
+        ctx.draw_sprite((8.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bike)?;
 
         for x in 0..10 {
-            Generic::Grass.draw(
-                canvas,
-                texture,
-                (Unit::new(x), GROUND_LEVEL),
-                (Unit::new(1), Unit::new(1)),
-            )?;
+            ctx.draw_sprite((x as f64, GROUND_LEVEL), (1.0, 1.0), &Tile::Grass)?;
         }
 
-        Generic::Sun.draw(
-            canvas,
-            texture,
-            (Unit::new(1), Unit::new(1)),
-            (Unit::new(1), Unit::new(1)),
-        )?;
+        ctx.draw_sprite((1.0, 1.0), (1.0, 1.0), &Tile::Sun)?;
 
         Ok(())
     }
 
-    fn draw_text(
-        &self,
-        canvas: &mut WindowCanvas,
-        texture: &Texture,
-        state: &State,
-    ) -> Result<(), String> {
+    fn draw_text<C: Ctx>(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
         if !state.tutorial.coin {
-            Generic::IntroductionText.draw(
-                canvas,
-                texture,
-                (Unit::new(3), Unit::new(2)),
-                (Unit::new(4), Unit::new(1)),
-            )?;
-            Generic::IntroductionGoalsText.draw(
-                canvas,
-                texture,
-                (Unit::new(1), Unit::new(3)),
-                (Unit::new(8), Unit::new(1)),
-            )?;
+            ctx.draw_sprite((3.0, 2.0), (4.0, 1.0), &Tile::IntroductionText)?;
+            ctx.draw_sprite((1.0, 3.0), (8.0, 1.0), &Tile::IntroductionGoalsText)?;
         } else {
-            Generic::RememberText.draw(
-                canvas,
-                texture,
-                (Unit::new(2), Unit::new_decimal(2.5)),
-                (Unit::new(6), Unit::new(1)),
-            )?;
-            Generic::VoicesText.draw(
-                canvas,
-                texture,
-                (Unit::new(6), Unit::new_decimal(9.25)),
-                (Unit::new(1), Unit::new_decimal(0.5)),
-            )?;
+            ctx.draw_sprite((2.0, 2.5), (6.0, 1.0), &Tile::RememberText)?;
+            ctx.draw_sprite((6.0, 9.25), (1.0, 0.5), &Tile::VoicesText)?;
         }
-        Generic::Bike.draw(
-            canvas,
-            texture,
-            (Unit::new(8), GROUND_LEVEL),
-            (Unit::new(1), Unit::new(1)),
-        )?;
-
-        for x in 0..10 {
-            Generic::Grass.draw(
-                canvas,
-                texture,
-                (Unit::new(x), GROUND_LEVEL),
-                (Unit::new(1), Unit::new(1)),
-            )?;
-        }
-
-        Generic::Sun.draw(
-            canvas,
-            texture,
-            (Unit::new(1), Unit::new(1)),
-            (Unit::new(1), Unit::new(1)),
-        )?;
-
         Ok(())
     }
 }
 
-impl Scene for Tutorial {
-    fn draw(
-        &self,
-        state: &crate::state::State,
-        canvas: &mut sdl2::render::WindowCanvas,
-        animation_timer: f64,
-    ) -> Result<(), String> {
-        let texture_creator = canvas.texture_creator();
-        let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
-
-        draw_ground(canvas)?;
-        self.draw_scenery(canvas, &texture)?;
-        self.draw_text(canvas, &texture, state)?;
+impl<C: Ctx> Scene<C> for Tutorial {
+    fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) -> Result<(), C::Error> {
+        ctx.fill_background(Rgb(255, 255, 255))?;
+        ctx.draw_ground()?;
+        self.draw_scenery(ctx)?;
+        self.draw_text(ctx, state)?;
         if !state.tutorial.coin {
-            draw_item(canvas, &texture, &Generic::Coin, 4, animation_timer)?;
+            ctx.draw_item(&Tile::Coin, 4.0)?;
         }
 
         Ok(())
     }
 
-    fn prepare_items(&self, state: &State) -> Items {
+    fn prepare_items(&self, state: &State<C>) -> Items {
         let mut items = Items::new();
         if state.tutorial.coin {
-            items.push(8, Interactables::Bike);
+            items.push(8.0, Interactables::Bike);
         } else {
-            items.push(4, Interactables::Coin);
+            items.push(4.0, Interactables::Coin);
         };
         items
     }
 
-    fn interact(&self, state: &mut State, position: Unit) {
+    fn interact(&self, ctx: &mut C, state: &mut State<C>, position: f64) -> Result<(), C::Error> {
         let closest = self.closest_item_within_distance(state, position);
-        let Some(item) = closest else { return };
-        state.send_audio("assets/click.ogg");
+        let Some(item) = closest else { return Ok(()) };
+        ctx.play_effect(Effect::Interact)?;
         match Interactables::from(item.id()) {
             Interactables::Coin => state.tutorial.coin = true,
             Interactables::Bike => {
-                state.scene_changed = Some((1.into(), Scenes::Outside));
+                state.scene_changed = Some((1.0, Scenes::Outside));
             }
         }
+        Ok(())
     }
 }

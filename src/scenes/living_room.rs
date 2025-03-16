@@ -1,16 +1,9 @@
-use std::path::Path;
-
-use sdl2::rect::Rect;
-use sdl2::{image::LoadTexture, render::WindowCanvas};
-
 use super::{InteractableId, Item, Items, Scene};
-use crate::actor::Actor;
-use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{draw_ground, draw_item, draw_wallpaper};
-use crate::logic::Unit;
-use crate::rect;
+use crate::ctx::{Ctx, Effect, Music};
+use crate::globals::GROUND_LEVEL;
+use crate::helper::CtxHelperExt;
+use crate::sprite::{Actor, ActorState, Bubble, Tile};
 use crate::state::State;
-use crate::sprite::Generic;
 
 use super::Scenes;
 
@@ -45,120 +38,117 @@ impl From<InteractableId> for Interactables {
 }
 
 impl LivingRoom {
-    fn draw_house(
-        &self,
-        canvas: &mut WindowCanvas,
-        state: &State,
-        animation_timer: f64,
-    ) -> Result<(), String> {
-        let texture_creator = canvas.texture_creator();
-        let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
+    fn draw_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
+        ctx.draw_ground()?;
+        ctx.draw_wallpaper(&Tile::StripeWallpaper)?;
 
-        draw_wallpaper(canvas, &texture, &Generic::StripeWallpaper)?;
+        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen)?;
 
-        Generic::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
-
-        Generic::TreeDayPicture.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Generic::HousePicture.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Generic::Couch.draw(canvas, &texture, (6.0, GROUND_LEVEL), (1.0, 1.0))?;
+        ctx.draw_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::TreeDayPicture)?;
+        ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::HousePicture)?;
+        ctx.draw_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Couch)?;
 
         if !state.living_room.coins[0] {
-            draw_item(canvas, &texture, &Generic::Coin, 3.0, animation_timer)?;
+            ctx.draw_item(&Tile::Coin, 3.0)?;
         }
         if !state.living_room.coins[1] {
-            draw_item(canvas, &texture, &Generic::Coin, 8.0, animation_timer)?;
+            ctx.draw_item(&Tile::Coin, 8.0)?;
         }
 
         Ok(())
     }
 
-    fn draw_confrontation(
-        &self,
-        canvas: &mut WindowCanvas,
-        state: &State,
-        animation_timer: f64,
-    ) -> Result<(), String> {
-        if !(state.living_room.coins.iter().all(|v| *v)) {
+    fn draw_confrontation<C: Ctx>(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
+        if !state.living_room.all_coins_collected() {
             return Ok(());
         }
-        let texture_creator = canvas.texture_creator();
-        let bubble = texture_creator.load_texture(Path::new("assets/bubble.png"))?;
-        let offset = (state.living_room.dad_confrontation_progress * 8.0).round() * 32.0;
+        let bubble = {
+            use Bubble::*;
+            let conf = state.living_room.dad_attack_seconds * 8.0;
+            [L0, L1, L2, L3, L4, L5, L6, L7]
+                .into_iter()
+                .enumerate()
+                .find_map(|(idx, bub)| {
+                    let seconds_elapsed = idx as f64 + 1.0;
+                    if conf < seconds_elapsed {
+                        Some(bub)
+                    } else {
+                        None
+                    }
+                })
+        };
 
-        let mut dad = Actor::new("assets/dad.png");
-        dad.set_position(
-            Unit::new_decimal(14.0 - (state.living_room.dad_confrontation_progress * 2.0)),
-            GROUND_LEVEL,
+        let dad = Actor::npc_sprite(
+            &ActorState::Left,
+            ctx.seconds_elapsed() % 1.0 > 0.5,
+            Actor::Dad,
         );
-        dad.run_left();
-        dad.draw(canvas, animation_timer)?;
-        canvas.copy(
-            &bubble,
-            rect!(offset, 0, 32, 32),
-            rect!(
-                PIXEL_PER_DOT * 9.0,
-                (GROUND_LEVEL.milliunits() as f64) * PIXEL_PER_DOT,
-                PIXEL_PER_DOT,
-                PIXEL_PER_DOT
+        ctx.draw_sprite(
+            (
+                14.0 - state.living_room.dad_attack_seconds * 2.0,
+                GROUND_LEVEL,
             ),
+            (1.0, 1.0),
+            &dad,
         )?;
+
+        if let Some(bubble) = bubble {
+            ctx.draw_sprite((9.0, GROUND_LEVEL), (1.0, 1.0), &bubble)?;
+        }
 
         Ok(())
     }
 }
 
-impl Scene for LivingRoom {
-    fn draw(
-        &self,
-        state: &crate::state::State,
-        canvas: &mut sdl2::render::WindowCanvas,
-        animation_timer: f64,
-    ) -> Result<(), String> {
-        canvas.clear();
-        self.draw_house(canvas, state, animation_timer)?;
-        draw_ground(canvas)?;
-        self.draw_confrontation(canvas, state, animation_timer)?;
+impl<C: Ctx> Scene<C> for LivingRoom {
+    fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) -> Result<(), C::Error> {
+        self.draw_house(ctx, state)?;
+        self.draw_confrontation(ctx, state)?;
         Ok(())
     }
 
-    fn interact(&self, state: &mut crate::state::State, position: Unit) {
+    fn interact(
+        &self,
+        ctx: &mut C,
+        state: &mut crate::state::State<C>,
+        position: f64,
+    ) -> Result<(), C::Error> {
         let Some(closest) = self.closest_item_within_distance(state, position) else {
-            return;
+            return Ok(());
         };
-        state.send_audio("assets/click.ogg");
+        ctx.play_effect(Effect::Interact)?;
         match closest.id().into() {
             Interactables::ExitDoor => {
                 state.living_room.has_escaped_dad = true;
-                state.scene_changed = Some((8.into(), Scenes::Kitchen));
+                state.scene_changed = Some((8.0, Scenes::Kitchen));
             }
             Interactables::Coin0 => {
                 state.living_room.coins[0] = true;
                 if state.living_room.coins[1] {
-                    state.change_background_track("assets/run.ogg");
+                    ctx.set_music(Music::Run)?;
                 };
             }
             Interactables::Coin1 => {
                 state.living_room.coins[1] = true;
                 if state.living_room.coins[0] {
-                    state.change_background_track("assets/run.ogg");
+                    ctx.set_music(Music::Run)?;
                 };
             }
-        }
+        };
+        Ok(())
     }
 
-    fn prepare_items(&self, state: &State) -> Items {
+    fn prepare_items(&self, state: &State<C>) -> Items {
         let mut items = Items::new();
         if !state.living_room.coins[0] {
-            items.push(Unit::new(3), Interactables::Coin0);
+            items.push(3.0, Interactables::Coin0);
         }
         if !state.living_room.coins[1] {
-            items.push(Unit::new(8), Interactables::Coin1);
+            items.push(8.0, Interactables::Coin1);
         }
-
-        if state.living_room.coins.iter().all(|v| !v) {
-            items.push(Unit::new(1), Interactables::ExitDoor);
+        if state.living_room.all_coins_collected() {
+            items.push(1.0, Interactables::ExitDoor);
         }
-
         items
     }
 }

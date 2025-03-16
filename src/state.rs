@@ -1,12 +1,4 @@
-use std::sync::mpsc::Sender;
-
-use crate::audio::Configuration;
-use crate::logic::Unit;
-// use crate::scenes::Scenes;
-
-pub fn all_coins_collected<const N: usize>(coins: &[bool; N]) -> bool {
-    coins.iter().all(|v| *v)
-}
+use crate::{ctx::Ctx, scenes::Scenes};
 
 pub struct Tutorial {
     pub coin: bool,
@@ -20,15 +12,33 @@ pub struct Entryway {
     pub coins: [bool; 4],
 }
 
+impl Entryway {
+    pub fn all_coins_collected(&self) -> bool {
+        self.coins.iter().all(|v| *v)
+    }
+}
+
 pub struct Kitchen {
     pub coins: [bool; 3],
     pub weapon_collected: bool,
 }
 
+impl Kitchen {
+    pub fn all_coins_collected(&self) -> bool {
+        self.coins.iter().all(|v| *v)
+    }
+}
+
 pub struct LivingRoom {
     pub coins: [bool; 2],
-    pub dad_confrontation_progress: f64,
+    pub dad_attack_seconds: f64,
     pub has_escaped_dad: bool,
+}
+
+impl LivingRoom {
+    pub fn all_coins_collected(&self) -> bool {
+        self.coins.iter().all(|v| *v)
+    }
 }
 
 pub struct MurderLivingRoom {
@@ -51,9 +61,7 @@ pub enum EndingChosen {
     Escaped,
 }
 
-struct Scenes;
-
-pub struct State<'a> {
+pub struct State<C: Ctx> {
     pub tutorial: Tutorial,
     pub outside: Outside,
     pub entryway: Entryway,
@@ -61,28 +69,31 @@ pub struct State<'a> {
     pub living_room: LivingRoom,
     pub murder_living_room: MurderLivingRoom,
     pub child_room: ChildRoom,
-
     pub ending_chosen: Option<EndingChosen>,
-    pub scene_changed: Option<(Unit, Scenes)>,
-    sound_effect: Sender<Configuration>,
-    music: &'a Sender<Configuration>,
+    pub scene_changed: Option<(f64, Scenes<C>)>,
 }
 
-impl<'a> State<'a> {
-    pub fn new(sound_effect: Sender<Configuration>, music: &'a Sender<Configuration>) -> Self {
+fn no_coins_collected<const N: usize>() -> [bool; N] {
+    [false; N]
+}
+
+impl<C: Ctx> State<C> {
+    pub fn new() -> Self {
         Self {
             tutorial: Tutorial { coin: false },
             outside: Outside {
                 key_collected: false,
             },
-            entryway: Entryway { coins: [false; 4] },
+            entryway: Entryway {
+                coins: no_coins_collected(),
+            },
             kitchen: Kitchen {
-                coins: [true; 3],
+                coins: no_coins_collected(),
                 weapon_collected: false,
             },
             living_room: LivingRoom {
-                coins: [false; 2],
-                dad_confrontation_progress: 0.0,
+                coins: no_coins_collected(),
+                dad_attack_seconds: 0.0,
                 has_escaped_dad: false,
             },
             murder_living_room: MurderLivingRoom {
@@ -92,31 +103,6 @@ impl<'a> State<'a> {
             child_room: ChildRoom { child_stabs: 0 },
             ending_chosen: None,
             scene_changed: None,
-            sound_effect,
-            music,
         }
-    }
-
-    pub fn send_audio(&self, path: &'static str) {
-        if self.child_room.child_stabs >= 3 {
-            return;
-        }
-        self.sound_effect
-            .send(Configuration::Play(1.0, path))
-            .unwrap();
-    }
-
-    pub fn change_background_track(&self, path: &'static str) {
-        self.music.send(Configuration::Play(0.5, path)).unwrap();
-    }
-
-    pub fn stop_background_track(&self) {
-        self.music.send(Configuration::Stop).unwrap();
-    }
-
-    pub fn play_ascension_track(&self) {
-        self.music
-            .send(Configuration::Play(1.0, "assets/ascension.ogg"))
-            .unwrap();
     }
 }

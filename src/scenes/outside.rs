@@ -1,20 +1,13 @@
-use std::path::Path;
-
-use sdl2::pixels::Color;
-use sdl2::rect::Rect;
-use sdl2::{image::LoadTexture, render::WindowCanvas};
-
 use super::{InteractableId, Item, Items, Scene};
-use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
-use crate::helper::{draw_ground, draw_item};
-use crate::logic::Unit;
-use crate::rect;
+use crate::ctx::{Ctx, Effect, Music, Rgb};
+use crate::globals::GROUND_LEVEL;
+use crate::helper::CtxHelperExt;
+use crate::sprite::Tile;
 use crate::state::{EndingChosen, State};
-use crate::sprite::Generic;
 
 use super::Scenes;
 
-const HOUSE_OFFSET: Unit = Unit::new(6);
+const HOUSE_OFFSET: f64 = 6.0;
 
 #[derive(Default)]
 pub struct Outside;
@@ -50,155 +43,131 @@ impl From<InteractableId> for Interactables {
 }
 
 impl Outside {
-    fn draw_house(
-        &self,
-        canvas: &mut WindowCanvas,
-        state: &State,
-        animation_timer: f64,
-    ) -> Result<(), String> {
-        let texture_creator = canvas.texture_creator();
-        let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
-        let ascension = texture_creator.load_texture(Path::new("assets/ascension.png"))?;
+    fn draw_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
+        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bike)?;
 
-        Generic::Bike.draw(canvas, &texture, (1, GROUND_LEVEL), (1, 1))?;
-
-        for i in (0..=2).map(Unit::new) {
-            Generic::HouseBrick.draw(canvas, &texture, ((HOUSE_OFFSET + i), GROUND_LEVEL), (1, 1))?;
+        for i in 0..=2 {
+            ctx.draw_sprite(
+                (HOUSE_OFFSET + i as f64, GROUND_LEVEL),
+                (1.0, 1.0),
+                &Tile::HouseBrick,
+            )?;
         }
 
         for x in 0..10 {
-            Generic::Grass.draw(canvas, &texture, (x, GROUND_LEVEL), (1, 1))?;
+            ctx.draw_sprite((x as f64, GROUND_LEVEL), (1.0, 1.0), &Tile::Grass)?;
         }
 
-        if state.child_room.child_dead() {
-            Generic::LemonSun.draw(canvas, &texture, (1, 1), (1, 1))?;
+        let sun_tile = if state.child_room.child_dead() {
+            Tile::LemonSun
         } else {
-            Generic::Sun.draw(canvas, &texture, (1, 1), (1, 1))?;
-        }
+            Tile::Sun
+        };
+        ctx.draw_sprite((1.0, 1.0), (1.0, 1.0), &sun_tile)?;
 
-        Generic::LeftTriangle.draw(
-            canvas,
-            &texture,
-            (HOUSE_OFFSET, GROUND_LEVEL - 1.into()),
-            (1, 1),
-        )?;
-        Generic::Block.draw(
-            canvas,
-            &texture,
-            ((HOUSE_OFFSET + 1.into()), GROUND_LEVEL - Unit::new(1)),
-            (1, 1),
-        )?;
-        Generic::RightTriangle.draw(
-            canvas,
-            &texture,
-            ((HOUSE_OFFSET + 2.into()), GROUND_LEVEL - Unit::new(1)),
-            (1, 1),
-        )?;
+        [Tile::LeftTriangle, Tile::Block, Tile::RightTriangle]
+            .into_iter()
+            .enumerate()
+            .map(|(offset, tile)| {
+                ctx.draw_sprite(
+                    (HOUSE_OFFSET + offset as f64, GROUND_LEVEL - 1.0),
+                    (1.0, 1.0),
+                    &tile,
+                )?;
+                Ok(())
+            })
+            .collect::<Result<(), C::Error>>()?;
 
         let door_texture = if state.outside.key_collected {
-            Generic::DoorOpen
+            Tile::DoorOpen
         } else {
-            Generic::DoorClosed
+            Tile::DoorClosed
         };
 
-        door_texture.draw(
-            canvas,
-            &texture,
-            ((HOUSE_OFFSET + 1.into()), GROUND_LEVEL),
-            (1, 1),
+        ctx.draw_sprite(
+            (HOUSE_OFFSET + 1.0, GROUND_LEVEL),
+            (1.0, 1.0),
+            &door_texture,
         )?;
 
-        let ascension_offset = (animation_timer * 4.0).floor() * 32.0;
-
         if state.child_room.child_dead() {
-            canvas.copy(
-                &ascension,
-                rect!(ascension_offset, 0, 32, 128),
-                rect!(3.0 * PIXEL_PER_DOT, 0, PIXEL_PER_DOT, PIXEL_PER_DOT * 4.0),
-            )?;
+            let ascension_offset = ctx.seconds_elapsed() % 4.0;
+            let sprite = if ascension_offset < 1.0 {
+                Tile::Ascension0
+            } else if ascension_offset < 2.0 {
+                Tile::Ascension1
+            } else if ascension_offset < 3.0 {
+                Tile::Ascension2
+            } else {
+                Tile::Ascension3
+            };
 
-            canvas.copy(
-                &ascension,
-                rect!(ascension_offset, 0, 32, 128),
-                rect!(
-                    3.0 * PIXEL_PER_DOT,
-                    4.0 * PIXEL_PER_DOT,
-                    PIXEL_PER_DOT,
-                    PIXEL_PER_DOT * 4.0
-                ),
-            )?;
+            ctx.draw_sprite((3.0, -2.0), (1.0, 4.0), &sprite)?;
+            ctx.draw_sprite((3.0, 2.0), (1.0, 4.0), &sprite)?;
         }
 
         if !state.outside.key_collected {
-            draw_item(canvas, &texture, &Generic::Key, 3, animation_timer)?;
+            ctx.draw_item(&Tile::Key, 3.0)?;
         }
 
         Ok(())
     }
 }
 
-impl Scene for Outside {
-    fn draw(
-        &self,
-        state: &crate::state::State,
-        canvas: &mut sdl2::render::WindowCanvas,
-        animation_timer: f64,
-    ) -> Result<(), String> {
+impl<C: Ctx> Scene<C> for Outside {
+    fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) -> Result<(), C::Error> {
         if state.child_room.child_dead() {
-            canvas.set_draw_color(Color::RGB(217, 87, 99));
+            ctx.fill_background(Rgb(217, 87, 99))?;
         } else {
-            canvas.set_draw_color(Color::RGB(255, 255, 255));
+            ctx.fill_background(Rgb(255, 255, 255))?;
         }
-        canvas.clear();
-        self.draw_house(canvas, state, animation_timer)?;
-        draw_ground(canvas)?;
-
+        self.draw_house(ctx, state)?;
+        ctx.draw_ground()?;
         Ok(())
     }
 
-    fn prepare_items(&self, state: &State) -> Items {
+    fn prepare_items(&self, state: &State<C>) -> Items {
         let mut items = Items::new();
         if state.outside.key_collected {
-            items.push(HOUSE_OFFSET + 1.into(), Interactables::Door);
+            items.push(HOUSE_OFFSET + 1.0, Interactables::Door);
         } else {
-            items.push(3, Interactables::Key);
+            items.push(3.0, Interactables::Key);
         }
-
         if state.child_room.child_dead() && state.ending_chosen.is_none() {
-            items.push(3, Interactables::Ascension);
+            items.push(3.0, Interactables::Ascension);
         }
-
         if state.living_room.has_escaped_dad
             && state.ending_chosen.is_none()
             && !state.child_room.child_dead()
         {
-            items.push(1, Interactables::Bike);
+            items.push(1.0, Interactables::Bike);
         }
 
         items
     }
 
-    fn interact(&self, state: &mut crate::state::State, position: Unit) {
+    fn interact(&self, ctx: &mut C, state: &mut State<C>, position: f64) -> Result<(), C::Error> {
         let Some(closest) = self.closest_item_within_distance(state, position) else {
-            return;
+            return Ok(());
         };
-        state.send_audio("assets/click.ogg");
+        ctx.play_effect(Effect::Interact)?;
         match closest.id().into() {
             Interactables::Key => state.outside.key_collected = true,
             Interactables::Ascension => {
                 state.ending_chosen = Some(EndingChosen::Ascended);
-                state.play_ascension_track();
+                ctx.set_music(Music::Ascend)?;
             }
             Interactables::Door => {
                 state.scene_changed = Some((1.into(), Scenes::Entryway));
 
                 if !state.living_room.has_escaped_dad {
-                    state.change_background_track("assets/lemonhead.ogg");
+                    ctx.set_music(Music::Lemonhead)?;
                 }
             }
             Interactables::Bike => {
                 state.ending_chosen = Some(EndingChosen::Escaped);
             }
-        }
+        };
+        Ok(())
     }
 }
