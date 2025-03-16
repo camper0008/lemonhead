@@ -9,12 +9,12 @@ use crate::globals::{GROUND_LEVEL, PIXEL_PER_DOT};
 use crate::helper::{draw_ground, draw_item};
 use crate::logic::Unit;
 use crate::rect;
-use crate::state::State;
+use crate::state::{EndingChosen, State};
 use crate::tileset::Tile;
 
 use super::Scenes;
 
-const HOUSE_OFFSET: i32 = 6;
+const HOUSE_OFFSET: Unit = Unit::new(6);
 
 #[derive(Default)]
 pub struct Outside;
@@ -60,44 +60,39 @@ impl Outside {
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
         let ascension = texture_creator.load_texture(Path::new("assets/ascension.png"))?;
 
-        Tile::Bike.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Tile::Bike.draw(canvas, &texture, (1, GROUND_LEVEL), (1, 1))?;
 
-        for i in 0..=2 {
-            Tile::HouseBrick.draw(
-                canvas,
-                &texture,
-                ((HOUSE_OFFSET + i) as f64, GROUND_LEVEL),
-                (1.0, 1.0),
-            )?;
+        for i in (0..=2).map(Unit::new) {
+            Tile::HouseBrick.draw(canvas, &texture, ((HOUSE_OFFSET + i), GROUND_LEVEL), (1, 1))?;
         }
 
         for x in 0..10 {
-            Tile::Grass.draw(canvas, &texture, (f64::from(x), GROUND_LEVEL), (1.0, 1.0))?;
+            Tile::Grass.draw(canvas, &texture, (x, GROUND_LEVEL), (1, 1))?;
         }
 
         if state.child_room.child_dead() {
-            Tile::LemonSun.draw(canvas, &texture, (1.0, 1.0), (1.0, 1.0))?;
+            Tile::LemonSun.draw(canvas, &texture, (1, 1), (1, 1))?;
         } else {
-            Tile::Sun.draw(canvas, &texture, (1.0, 1.0), (1.0, 1.0))?;
+            Tile::Sun.draw(canvas, &texture, (1, 1), (1, 1))?;
         }
 
         Tile::LeftTriangle.draw(
             canvas,
             &texture,
-            (HOUSE_OFFSET as f64, GROUND_LEVEL - 1.0),
-            (1.0, 1.0),
+            (HOUSE_OFFSET, GROUND_LEVEL - 1.into()),
+            (1, 1),
         )?;
         Tile::Block.draw(
             canvas,
             &texture,
-            ((HOUSE_OFFSET + 1) as f64, GROUND_LEVEL - 1.0),
-            (1.0, 1.0),
+            ((HOUSE_OFFSET + 1.into()), GROUND_LEVEL - Unit::new(1)),
+            (1, 1),
         )?;
         Tile::RightTriangle.draw(
             canvas,
             &texture,
-            ((HOUSE_OFFSET + 2) as f64, GROUND_LEVEL - 1.0),
-            (1.0, 1.0),
+            ((HOUSE_OFFSET + 2.into()), GROUND_LEVEL - Unit::new(1)),
+            (1, 1),
         )?;
 
         let door_texture = if state.outside.key_collected {
@@ -109,8 +104,8 @@ impl Outside {
         door_texture.draw(
             canvas,
             &texture,
-            ((HOUSE_OFFSET + 1) as f64, GROUND_LEVEL),
-            (1.0, 1.0),
+            ((HOUSE_OFFSET + 1.into()), GROUND_LEVEL),
+            (1, 1),
         )?;
 
         let ascension_offset = (animation_timer * 4.0).floor() * 32.0;
@@ -135,7 +130,7 @@ impl Outside {
         }
 
         if !state.outside.key_collected {
-            draw_item(canvas, &texture, &Tile::Key, 3.0, animation_timer)?;
+            draw_item(canvas, &texture, &Tile::Key, 3, animation_timer)?;
         }
 
         Ok(())
@@ -164,17 +159,20 @@ impl Scene for Outside {
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
         if state.outside.key_collected {
-            items.push(Unit::from_units(HOUSE_OFFSET + 1), Interactables::Door);
+            items.push(HOUSE_OFFSET + 1.into(), Interactables::Door);
         } else {
-            items.push(Unit::from_units(3), Interactables::Key);
+            items.push(3, Interactables::Key);
         }
 
-        if state.child_room.child_dead() && !state.ascended {
-            items.push(Unit::from_units(3), Interactables::Ascension);
+        if state.child_room.child_dead() && state.ending_chosen.is_none() {
+            items.push(3, Interactables::Ascension);
         }
 
-        if state.living_room.confronted && !state.escaped && !state.child_room.child_dead() {
-            items.push(Unit::from_units(1), Interactables::Bike);
+        if state.living_room.confronted
+            && state.ending_chosen.is_none()
+            && !state.child_room.child_dead()
+        {
+            items.push(1, Interactables::Bike);
         }
 
         items
@@ -188,18 +186,18 @@ impl Scene for Outside {
         match closest.id().into() {
             Interactables::Key => state.outside.key_collected = true,
             Interactables::Ascension => {
-                state.ascended = true;
+                state.ending_chosen = Some(EndingChosen::Ascended);
                 state.play_ascension_track();
             }
             Interactables::Door => {
-                state.scene_changed = Some((1, Scenes::Entryway));
+                state.scene_changed = Some((1.into(), Scenes::Entryway));
 
                 if !state.living_room.confronted {
                     state.change_background_track("assets/lemonhead.ogg");
                 }
             }
             Interactables::Bike => {
-                state.escaped = true;
+                state.ending_chosen = Some(EndingChosen::Escaped);
             }
         }
     }

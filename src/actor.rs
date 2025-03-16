@@ -22,7 +22,7 @@ enum ActorState {
 impl Actor {
     pub fn new(asset: &'static str) -> Self {
         Actor {
-            position: (Unit::from_units(0), Unit::from_units(0)),
+            position: (Unit::new(0), Unit::new(0)),
             state: ActorState::Idle,
             asset,
         }
@@ -41,13 +41,19 @@ impl Actor {
         self.state = ActorState::RunningRight;
     }
 
-    pub fn set_position(&mut self, x: Unit, y: Unit) {
-        self.position.0 = x;
-        self.position.1 = y;
+    pub fn set_position(&mut self, x: impl Into<Unit>, y: impl Into<Unit>) {
+        self.position.0 = x.into();
+        self.position.1 = y.into();
     }
-    pub fn offset_position(&mut self, x: Unit, y: Unit, delta_time: Unit) {
-        self.position.0 += x * delta_time;
-        self.position.1 += y * delta_time;
+    pub fn offset_position(
+        &mut self,
+        x: impl Into<Unit>,
+        y: impl Into<Unit>,
+        delta_time: impl Into<Unit>,
+    ) {
+        let delta_time = delta_time.into();
+        self.position.0 += x.into() * delta_time;
+        self.position.1 += y.into() * delta_time;
     }
 
     pub fn draw(&self, canvas: &mut WindowCanvas, animation_timer: f64) -> Result<(), String> {
@@ -65,8 +71,8 @@ impl Actor {
             &texture,
             rect!(offset, 0, 32, 32),
             rect!(
-                (self.position.0.value() as f64 * PIXEL_PER_DOT) / 1000.0,
-                (self.position.1.value() as f64 * PIXEL_PER_DOT) / 1000.0,
+                self.position.0.decimal() * PIXEL_PER_DOT,
+                self.position.1.decimal() * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
             ),

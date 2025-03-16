@@ -47,12 +47,12 @@ impl ChildRoom {
         let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
         draw_wallpaper(canvas, &texture, &Tile::DotWallpaper)?;
-        Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Tile::DoorOpen.draw(canvas, &texture, (1, GROUND_LEVEL), (1, 1))?;
 
-        Tile::ChildPoster.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Tile::Computer.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Tile::OfficeChair.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Tile::Bed.draw(canvas, &texture, (6.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Tile::ChildPoster.draw(canvas, &texture, (3, GROUND_LEVEL), (1, 1))?;
+        Tile::Computer.draw(canvas, &texture, (4, GROUND_LEVEL), (1, 1))?;
+        Tile::OfficeChair.draw(canvas, &texture, (4, GROUND_LEVEL), (1, 1))?;
+        Tile::Bed.draw(canvas, &texture, (6, GROUND_LEVEL), (1, 1))?;
 
         Ok(())
     }
@@ -80,7 +80,7 @@ impl ChildRoom {
             rect!(offset, 0, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 5.0,
-                (GROUND_LEVEL) * PIXEL_PER_DOT,
+                (GROUND_LEVEL.decimal()) * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
             ),
@@ -92,7 +92,7 @@ impl ChildRoom {
                 rect!(0, 0, 32, 32),
                 rect!(
                     PIXEL_PER_DOT * 5.0,
-                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    (GROUND_LEVEL.decimal()) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
@@ -103,8 +103,8 @@ impl ChildRoom {
                 &blood,
                 rect!(0, 32, 32, 32),
                 rect!(
-                    PIXEL_PER_DOT * 4.,
-                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT * 4.0,
+                    (GROUND_LEVEL.decimal()) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
@@ -115,8 +115,8 @@ impl ChildRoom {
                 &blood,
                 rect!(32, 32, 32, 32),
                 rect!(
-                    PIXEL_PER_DOT * 6.,
-                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    PIXEL_PER_DOT * 6.0,
+                    (GROUND_LEVEL.decimal()) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
@@ -144,10 +144,10 @@ impl Scene for ChildRoom {
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
         if state.child_room.child_stabs < 3 {
-            items.push(Unit::from_units(5), Interactables::Child);
+            items.push(5, Interactables::Child);
         }
         if state.child_room.child_stabs > 0 {
-            items.push(Unit::from_units(1), Interactables::ExitDoor);
+            items.push(1, Interactables::ExitDoor);
         }
         items
     }
@@ -162,7 +162,7 @@ impl Scene for ChildRoom {
                 if state.child_room.child_stabs < 3 {
                     return;
                 }
-                state.scene_changed = Some((4, Scenes::Entryway));
+                state.scene_changed = Some((4.into(), Scenes::Entryway));
             }
             Interactables::Child => {
                 state.send_audio("assets/stab.ogg");

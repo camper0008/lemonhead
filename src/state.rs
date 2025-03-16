@@ -1,6 +1,7 @@
 use std::sync::mpsc::Sender;
 
 use crate::audio::Configuration;
+use crate::logic::Unit;
 use crate::scenes::Scenes;
 
 pub fn all_coins_collected<const N: usize>(coins: &[bool; N]) -> bool {
@@ -45,6 +46,11 @@ impl ChildRoom {
     }
 }
 
+pub enum EndingChosen {
+    Ascended,
+    Escaped,
+}
+
 pub struct State<'a> {
     pub tutorial: Tutorial,
     pub outside: Outside,
@@ -54,10 +60,8 @@ pub struct State<'a> {
     pub murder_living_room: MurderLivingRoom,
     pub child_room: ChildRoom,
 
-    pub ascended: bool,
-    pub escaped: bool,
-
-    pub scene_changed: Option<(u8, Scenes)>,
+    pub ending_chosen: Option<EndingChosen>,
+    pub scene_changed: Option<(Unit, Scenes)>,
     sound_effect: Sender<Configuration>,
     music: &'a Sender<Configuration>,
 }
@@ -84,11 +88,10 @@ impl<'a> State<'a> {
                 dad_dead: false,
             },
             child_room: ChildRoom { child_stabs: 0 },
-            ascended: false,
+            ending_chosen: None,
             scene_changed: None,
             sound_effect,
             music,
-            escaped: false,
         }
     }
 

@@ -5,6 +5,7 @@ use sdl2::render::WindowCanvas;
 
 use crate::{
     globals::{GROUND_LEVEL, PIXEL_PER_DOT},
+    logic::Unit,
     state::State,
     tileset::Tile,
 };
@@ -20,7 +21,7 @@ pub fn draw_item(
     canvas: &mut WindowCanvas,
     texture: &Texture,
     tile: &Tile,
-    position: f64,
+    position: impl Into<Unit>,
     animation_timer: f64,
 ) -> Result<(), String> {
     let offset = (animation_timer * PI * 2.0).sin() * 0.125;
@@ -28,8 +29,8 @@ pub fn draw_item(
     tile.draw(
         canvas,
         texture,
-        (position, GROUND_LEVEL + offset),
-        (1.0, 1.0),
+        (position, GROUND_LEVEL + Unit::new_decimal(offset)),
+        (1, 1),
     )?;
 
     Ok(())
@@ -95,13 +96,13 @@ pub fn draw_ground(canvas: &mut WindowCanvas) -> Result<(), String> {
     let texture_creator = canvas.texture_creator();
     let tileset = texture_creator.load_texture(Path::new("assets/tile.png"))?;
 
-    Tile::Ground.draw(canvas, &tileset, (0.0, GROUND_LEVEL + 1.0), (10.0, 1.0))?;
+    Tile::Ground.draw(canvas, &tileset, (0, GROUND_LEVEL + 1.into()), (10, 1))?;
 
     Tile::Block.draw(
         canvas,
         &tileset,
-        (0.0, (GROUND_LEVEL + 2.0)),
-        (10.0, (10.0 - GROUND_LEVEL - 2.0)),
+        (0, GROUND_LEVEL + 2.into()),
+        (10, Unit::new(10) - GROUND_LEVEL - 2.into()),
     )?;
 
     Ok(())
@@ -113,8 +114,8 @@ pub fn draw_wallpaper(
     tile: &Tile,
 ) -> Result<(), String> {
     for x in 0..10 {
-        for y in 0..=GROUND_LEVEL as u32 {
-            tile.draw(canvas, texture, (f64::from(x), f64::from(y)), (1.0, 1.0))?;
+        for y in 0..=GROUND_LEVEL.milliunits() / 1000 {
+            tile.draw(canvas, texture, (x, y), (1, 1))?;
         }
     }
 

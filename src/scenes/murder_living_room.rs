@@ -47,11 +47,11 @@ impl MurderLivingRoom {
 
         draw_wallpaper(canvas, &texture, &Tile::StripeWallpaper)?;
 
-        Tile::DoorOpen.draw(canvas, &texture, (1.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Tile::DoorOpen.draw(canvas, &texture, (Unit::new(1), GROUND_LEVEL), (1, 1))?;
 
-        Tile::TreeDayPicture.draw(canvas, &texture, (3.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Tile::HousePicture.draw(canvas, &texture, (4.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Tile::Couch.draw(canvas, &texture, (6.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Tile::TreeDayPicture.draw(canvas, &texture, (3, GROUND_LEVEL), (1, 1))?;
+        Tile::HousePicture.draw(canvas, &texture, (4, GROUND_LEVEL), (1, 1))?;
+        Tile::Couch.draw(canvas, &texture, (6, GROUND_LEVEL), (1, 1))?;
 
         Ok(())
     }
@@ -79,7 +79,7 @@ impl MurderLivingRoom {
             rect!(offset, 0, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 5.0,
-                (GROUND_LEVEL) * PIXEL_PER_DOT,
+                GROUND_LEVEL.decimal() * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
             ),
@@ -91,7 +91,7 @@ impl MurderLivingRoom {
                 rect!(0, 32, 32, 32),
                 rect!(
                     PIXEL_PER_DOT * 4.0,
-                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    GROUND_LEVEL.decimal() * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
@@ -101,7 +101,7 @@ impl MurderLivingRoom {
                 rect!(0, 0, 32, 32),
                 rect!(
                     PIXEL_PER_DOT * 5.0,
-                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    GROUND_LEVEL.decimal() * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
@@ -111,7 +111,7 @@ impl MurderLivingRoom {
                 rect!(32, 32, 32, 32),
                 rect!(
                     PIXEL_PER_DOT * 6.0,
-                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    GROUND_LEVEL.decimal() * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
@@ -143,7 +143,7 @@ impl Scene for MurderLivingRoom {
         match closest.id().into() {
             Interactables::ExitDoor => {
                 state.send_audio("assets/click.ogg");
-                state.scene_changed = Some((8, Scenes::Kitchen));
+                state.scene_changed = Some((8.into(), Scenes::Kitchen));
             }
             Interactables::Dad => {
                 state.send_audio("assets/stab.ogg");
@@ -157,9 +157,9 @@ impl Scene for MurderLivingRoom {
 
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
-        items.push(Unit::from_units(5), Interactables::Dad);
+        items.push(Unit::new(5), Interactables::Dad);
         if state.murder_living_room.dad_dead {
-            items.push(Unit::from_units(1), Interactables::ExitDoor);
+            items.push(Unit::new(1), Interactables::ExitDoor);
         }
         items
     }

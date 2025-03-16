@@ -1,28 +1,40 @@
-use std::ops::{AddAssign, Mul, Sub};
+use std::ops::{Add, AddAssign, Mul, Sub};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct Unit(i32);
 
 impl Unit {
-    pub fn value(&self) -> i32 {
+    pub const fn milliunits(&self) -> i32 {
         self.0
     }
 
-    pub fn from_milliunits(value: i32) -> Self {
-        Self(value)
+    pub const fn decimal(&self) -> f64 {
+        self.0 as f64 / 1000.0
     }
 
-    pub fn from_units(value: i32) -> Self {
+    pub const fn new(value: i32) -> Self {
         Self(value * 1000)
     }
 
-    pub fn from_units_decimal(value: f64) -> Self {
+    pub const fn new_decimal(value: f64) -> Self {
         Self((value * 1000.0) as i32)
     }
 }
 
+impl From<i32> for Unit {
+    fn from(value: i32) -> Self {
+        Self::new(value)
+    }
+}
+
+impl From<f64> for Unit {
+    fn from(value: f64) -> Self {
+        Self::new_decimal(value)
+    }
+}
+
 impl Unit {
-    pub fn abs(&self) -> Unit {
+    pub const fn abs(&self) -> Unit {
         Unit(self.0.abs())
     }
 }
@@ -33,11 +45,19 @@ impl AddAssign for Unit {
     }
 }
 
+impl Add for Unit {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Unit(self.0.add(rhs.0))
+    }
+}
+
 impl Mul for Unit {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        Unit(self.0.mul(rhs.0))
+        (self.decimal() * rhs.decimal()).into()
     }
 }
 

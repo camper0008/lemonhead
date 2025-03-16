@@ -91,7 +91,7 @@ impl Kitchen {
                 rect!(0, 32, 64, 32),
                 rect!(
                     PIXEL_PER_DOT * 3.0,
-                    GROUND_LEVEL * PIXEL_PER_DOT,
+                    GROUND_LEVEL.decimal() * PIXEL_PER_DOT,
                     PIXEL_PER_DOT * 2.0,
                     PIXEL_PER_DOT
                 ),
@@ -102,7 +102,7 @@ impl Kitchen {
                 rect!(64, 0, 32, 32),
                 rect!(
                     6.0 * PIXEL_PER_DOT,
-                    (GROUND_LEVEL - 1.0) * PIXEL_PER_DOT,
+                    (GROUND_LEVEL.decimal() - 1.0) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
@@ -142,22 +142,22 @@ impl Scene for Kitchen {
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
 
-        items.push(Unit::from_units(1), Interactables::ExitDoor);
+        items.push(1, Interactables::ExitDoor);
 
         if !state.kitchen.coins[0] {
-            items.push(Unit::from_units(3), Interactables::Coin0);
+            items.push(3, Interactables::Coin0);
         }
         if !state.kitchen.coins[1] {
-            items.push(Unit::from_units(4), Interactables::Coin1);
+            items.push(4, Interactables::Coin1);
         }
         if !state.kitchen.coins[2] {
-            items.push(Unit::from_units(5), Interactables::Coin2);
+            items.push(5, Interactables::Coin2);
         }
         if all_coins_collected(&state.kitchen.coins) {
-            items.push(Unit::from_units(8), Interactables::LivingRoomDoor);
+            items.push(8, Interactables::LivingRoomDoor);
         }
         if state.living_room.confronted && !state.kitchen.weapon_collected {
-            items.push(Unit::from_units(6), Interactables::Weapon);
+            items.push(6, Interactables::Weapon);
         }
 
         items
@@ -173,7 +173,7 @@ impl Scene for Kitchen {
                 if state.living_room.confronted && !state.kitchen.weapon_collected {
                     return;
                 }
-                state.scene_changed = Some((8, Scenes::Entryway));
+                state.scene_changed = Some((8.into(), Scenes::Entryway));
             }
             Interactables::Coin0 => state.kitchen.coins[0] = true,
             Interactables::Coin1 => state.kitchen.coins[1] = true,
@@ -192,7 +192,7 @@ impl Scene for Kitchen {
                 } else {
                     Scenes::LivingRoom
                 };
-                state.scene_changed = Some((1, scene));
+                state.scene_changed = Some((1.into(), scene));
             }
         }
     }

@@ -85,7 +85,7 @@ impl Entryway {
                 rect!(0, 0, 32, 32),
                 rect!(
                     PIXEL_PER_DOT * 2.0,
-                    (GROUND_LEVEL) * PIXEL_PER_DOT,
+                    (GROUND_LEVEL.decimal()) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
@@ -118,7 +118,7 @@ impl Entryway {
                 rect!(32, 0, 32, 32),
                 rect!(
                     4.0 * PIXEL_PER_DOT,
-                    (GROUND_LEVEL - 1.0) * PIXEL_PER_DOT,
+                    (GROUND_LEVEL.decimal() - 1.0) * PIXEL_PER_DOT,
                     PIXEL_PER_DOT,
                     PIXEL_PER_DOT
                 ),
@@ -157,24 +157,24 @@ impl Scene for Entryway {
 
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
-        items.push(Unit::from_units(1), Interactables::ExitDoor);
+        items.push(Unit::new(1), Interactables::ExitDoor);
         if !state.entryway.coins[0] {
-            items.push(Unit::from_units(3), Interactables::Coin0);
+            items.push(Unit::new(3), Interactables::Coin0);
         }
         if !state.entryway.coins[1] {
-            items.push(Unit::from_units(4), Interactables::Coin1);
+            items.push(Unit::new(4), Interactables::Coin1);
         }
         if !state.entryway.coins[2] {
-            items.push(Unit::from_units(5), Interactables::Coin2);
+            items.push(Unit::new(5), Interactables::Coin2);
         }
         if !state.entryway.coins[3] {
-            items.push(Unit::from_units(6), Interactables::Coin3);
+            items.push(Unit::new(6), Interactables::Coin3);
         }
         if all_coins_collected(&state.entryway.coins) {
-            items.push(Unit::from_units(8), Interactables::KitchenDoor);
+            items.push(Unit::new(8), Interactables::KitchenDoor);
         }
         if state.murder_living_room.dad_dead {
-            items.push(Unit::from_units(4), Interactables::ChildDoor);
+            items.push(Unit::new(4), Interactables::ChildDoor);
         }
         items
     }
@@ -189,7 +189,7 @@ impl Scene for Entryway {
                 if state.murder_living_room.dad_dead && !state.child_room.child_stabs > 0 {
                     return;
                 }
-                state.scene_changed = Some((7, Scenes::Outside));
+                state.scene_changed = Some((7.into(), Scenes::Outside));
                 if state.child_room.child_stabs == 0 {
                     state.change_background_track("assets/outside.ogg");
                 }
@@ -200,10 +200,10 @@ impl Scene for Entryway {
             Interactables::Coin3 => state.entryway.coins[3] = true,
             Interactables::ChildDoor => {
                 state.change_background_track("assets/heartbeat-child-with-lemon.ogg");
-                state.scene_changed = Some((1, Scenes::ChildRoom));
+                state.scene_changed = Some((1.into(), Scenes::ChildRoom));
             }
             Interactables::KitchenDoor => {
-                state.scene_changed = Some((1, Scenes::Kitchen));
+                state.scene_changed = Some((1.into(), Scenes::Kitchen));
             }
         }
     }

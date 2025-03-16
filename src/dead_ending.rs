@@ -4,7 +4,7 @@ use sdl2::{
     event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, render::WindowCanvas, Sdl,
 };
 
-use crate::{audio::Configuration, globals::GROUND_LEVEL, tileset::Tile};
+use crate::{audio::Configuration, globals::GROUND_LEVEL, logic::Unit, tileset::Tile};
 
 pub fn dead_ending(
     sdl_context: &Sdl,
@@ -28,26 +28,26 @@ pub fn dead_ending(
 
         let offset = animation_timer % 5.0 * 4.0;
 
-        Tile::Cloud0.draw(canvas, &texture, (-3.0 + offset * 1.1, 1.0), (1.0, 1.0))?;
-        Tile::Cloud1.draw(canvas, &texture, (-6.0 + offset, 2.0), (1.0, 1.0))?;
-        Tile::Cloud2.draw(canvas, &texture, (-8.0 + offset * 0.9, 1.0), (1.0, 1.0))?;
-        Tile::Cloud3.draw(canvas, &texture, (-1.0 + offset * 1.2, 2.0), (1.0, 1.0))?;
-        Tile::Cross.draw(canvas, &texture, (5.0, GROUND_LEVEL), (1.0, 1.0))?;
+        Tile::Cloud0.draw(canvas, &texture, (-3.0 + offset * 1.1, 1), (1, 1))?;
+        Tile::Cloud1.draw(canvas, &texture, (-6.0 + offset, 2.0), (1, 1))?;
+        Tile::Cloud2.draw(canvas, &texture, (-8.0 + offset * 0.9, 1), (1, 1))?;
+        Tile::Cloud3.draw(canvas, &texture, (-1.0 + offset * 1.2, 2), (1, 1))?;
+        Tile::Cross.draw(canvas, &texture, (5, GROUND_LEVEL), (1, 1))?;
 
-        Tile::TreeTrunk.draw(canvas, &texture, (2.0, GROUND_LEVEL), (1.0, 1.0))?;
-        Tile::TreeLeaves.draw(canvas, &texture, (2.0, GROUND_LEVEL - 1.0), (1.0, 1.0))?;
+        Tile::TreeTrunk.draw(canvas, &texture, (2, GROUND_LEVEL), (1, 1))?;
+        Tile::TreeLeaves.draw(canvas, &texture, (2, GROUND_LEVEL - 1.into()), (1, 1))?;
         for i in 0..10 {
-            Tile::Grass.draw(canvas, &texture, (i as f64, GROUND_LEVEL), (1.0, 1.0))?;
+            Tile::Grass.draw(canvas, &texture, (i, GROUND_LEVEL), (1, 1))?;
         }
-        Tile::Ground.draw(canvas, &texture, (0.0, GROUND_LEVEL + 1.0), (10.0, 1.0))?;
+        Tile::Ground.draw(canvas, &texture, (0, GROUND_LEVEL + 1.into()), (10.0, 1))?;
         Tile::Block.draw(
             canvas,
             &texture,
-            (0.0, GROUND_LEVEL + 2.0),
-            (10.0, 10.0 - GROUND_LEVEL - 2.0),
+            (0, GROUND_LEVEL + 2.into()),
+            (10, Unit::new(10) - GROUND_LEVEL - 2.into()),
         )?;
 
-        Tile::LemonSkull.draw(canvas, &texture, (5.0, GROUND_LEVEL + 2.0), (1.0, 0.5))?;
+        Tile::LemonSkull.draw(canvas, &texture, (5, GROUND_LEVEL + 2.into()), (1, 0))?;
 
         let angel = if animation_timer % 0.2 > 0.1 {
             Tile::LemonAngel0
@@ -60,9 +60,9 @@ pub fn dead_ending(
             &texture,
             (
                 4.5,
-                GROUND_LEVEL - 1.0 - (animation_timer * 4.0).sin() * 0.15,
+                GROUND_LEVEL - (1.0 - (animation_timer * 4.0).sin() * 0.15).into(),
             ),
-            (1.0, 1.0),
+            (1, 1),
         )?;
 
         Tile::GameOver.draw(
@@ -89,6 +89,6 @@ pub fn dead_ending(
         }
 
         animation_timer += delta_time;
-        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        std::thread::sleep(Duration::new(0, 100_000_000u32 / 60));
     }
 }

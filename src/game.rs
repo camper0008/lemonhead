@@ -5,10 +5,11 @@ use sdl2::{event::Event, keyboard::Keycode, render::WindowCanvas, Sdl};
 use crate::{
     actor::Actor,
     audio::{audio_thread, Configuration},
-    globals::{GROUND_LEVEL, PIXEL_PER_DOT},
+    globals::GROUND_LEVEL,
     helper::draw_interact_prompt,
+    logic::Unit,
     scenes::Scenes,
-    state::{all_coins_collected, State},
+    state::{all_coins_collected, EndingChosen, State},
 };
 
 pub enum Action {
@@ -32,7 +33,7 @@ pub fn game(
     let mut scene = Scenes::Tutorial;
     let mut state = State::new(sound_effect_sender, music_sender);
     let mut lemonhead = Actor::new("assets/lemonhead.png");
-    lemonhead.set_position(PIXEL_PER_DOT, PIXEL_PER_DOT * GROUND_LEVEL);
+    lemonhead.set_position(1, GROUND_LEVEL);
 
     state.change_background_track("assets/outside.ogg");
 
@@ -48,35 +49,41 @@ pub fn game(
         }
 
         lemonhead.idle();
+
         if *keys_down.get(&Keycode::A).unwrap_or(&false)
-            && !(state.ascended || state.escaped)
-            && lemonhead.x() > 0.0
+            && state.ending_chosen.is_none()
+            && lemonhead.x() > 0.into()
         {
-            lemonhead.offset_position(PIXEL_PER_DOT * -1.25, 0.0, delta_time);
+            lemonhead.offset_position(-1.25, 0.0, delta_time);
             lemonhead.run_left();
         }
+
         if *keys_down.get(&Keycode::D).unwrap_or(&false)
-            && !(state.ascended || state.escaped)
-            && lemonhead.x() < (9.0 * PIXEL_PER_DOT)
+            && state.ending_chosen.is_none()
+            && lemonhead.x() < 9.into()
         {
-            lemonhead.offset_position(PIXEL_PER_DOT * 1.25, 0.0, delta_time);
+            lemonhead.offset_position(1.25, 0.0, delta_time);
             lemonhead.run_right();
         }
+
         if *keys_down.get(&Keycode::Space).unwrap_or(&false) {
             scene.inner().interact(&mut state, lemonhead.x());
             keys_down.insert(Keycode::Space, false);
         }
 
-        if state.ascended {
-            lemonhead.offset_position(0.0, -PIXEL_PER_DOT / 4.0, delta_time);
-        }
-
-        if state.escaped {
-            lemonhead.run_left();
-            lemonhead.offset_position(-PIXEL_PER_DOT / 2.0, 0.0, delta_time);
-            escape_timer += delta_time;
-            if escape_timer > 5.0 {
-                break Action::GoodEnding;
+        if let Some(ref ending) = state.ending_chosen {
+            match ending {
+                EndingChosen::Ascended => {
+                    lemonhead.offset_position(0.0, 0.25, delta_time);
+                }
+                EndingChosen::Escaped => {
+                    lemonhead.run_left();
+                    lemonhead.offset_position(0.5, 0.0, delta_time);
+                    escape_timer += delta_time;
+                    if escape_timer > 5.0 {
+                        break Action::GoodEnding;
+                    }
+                }
             }
         }
 
@@ -108,18 +115,15 @@ pub fn game(
             None => (),
             Some((position, new_scene)) => {
                 scene = new_scene;
-                lemonhead.set_position(
-                    PIXEL_PER_DOT * position as f64,
-                    PIXEL_PER_DOT * GROUND_LEVEL,
-                );
+                lemonhead.set_position(position, GROUND_LEVEL);
                 state.scene_changed = None;
             }
         }
 
         if all_coins_collected(&state.living_room.coins) && !state.living_room.confronted {
             state.living_room.dad_confrontation_progress += delta_time;
-            let dad_position = PIXEL_PER_DOT * 13.65
-                - (state.living_room.dad_confrontation_progress * 2.0 * PIXEL_PER_DOT);
+            let dad_position =
+                Unit::new_decimal(13.65 - (state.living_room.dad_confrontation_progress * 2.0));
             if dad_position <= lemonhead.x() {
                 break Action::Dead;
             }

@@ -87,9 +87,8 @@ impl LivingRoom {
 
         let mut dad = Actor::new("assets/dad.png");
         dad.set_position(
-            PIXEL_PER_DOT * 14.0
-                - (state.living_room.dad_confrontation_progress * 2.0 * PIXEL_PER_DOT),
-            PIXEL_PER_DOT * GROUND_LEVEL,
+            Unit::new_decimal(14.0 - (state.living_room.dad_confrontation_progress * 2.0)),
+            GROUND_LEVEL,
         );
         dad.run_left();
         dad.draw(canvas, animation_timer)?;
@@ -98,7 +97,7 @@ impl LivingRoom {
             rect!(offset, 0, 32, 32),
             rect!(
                 PIXEL_PER_DOT * 9.0,
-                (GROUND_LEVEL) * PIXEL_PER_DOT,
+                (GROUND_LEVEL.milliunits() as f64) * PIXEL_PER_DOT,
                 PIXEL_PER_DOT,
                 PIXEL_PER_DOT
             ),
@@ -130,7 +129,7 @@ impl Scene for LivingRoom {
         match closest.id().into() {
             Interactables::ExitDoor => {
                 state.living_room.confronted = true;
-                state.scene_changed = Some((8, Scenes::Kitchen));
+                state.scene_changed = Some((8.into(), Scenes::Kitchen));
             }
             Interactables::Coin0 => {
                 state.living_room.coins[0] = true;
@@ -150,14 +149,14 @@ impl Scene for LivingRoom {
     fn prepare_items(&self, state: &State) -> Items {
         let mut items = Items::new();
         if !state.living_room.coins[0] {
-            items.push(Unit::from_units(3), Interactables::Coin0);
+            items.push(Unit::new(3), Interactables::Coin0);
         }
         if !state.living_room.coins[1] {
-            items.push(Unit::from_units(8), Interactables::Coin1);
+            items.push(Unit::new(8), Interactables::Coin1);
         }
 
         if state.living_room.coins.iter().all(|v| !v) {
-            items.push(Unit::from_units(1), Interactables::ExitDoor);
+            items.push(Unit::new(1), Interactables::ExitDoor);
         }
 
         items

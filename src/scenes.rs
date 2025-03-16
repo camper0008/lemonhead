@@ -22,8 +22,8 @@ impl Items {
         Self(Vec::new())
     }
 
-    pub fn push(&mut self, position: Unit, item: impl Item + 'static) {
-        self.0.push((position, Box::new(item)));
+    pub fn push(&mut self, position: impl Into<Unit>, item: impl Item + 'static) {
+        self.0.push((position.into(), Box::new(item)));
     }
 }
 
@@ -44,7 +44,7 @@ pub trait Scene {
         items
             .into_iter()
             .map(|(dist, item)| ((dist - position).abs(), item))
-            .filter(|(dist, _)| *dist < Unit::from_units_decimal(0.5))
+            .filter(|(dist, _)| *dist < Unit::new_decimal(0.5))
             .min_by(|a, b| (a.0).cmp(&b.0))
             .map(|(_dist, item)| item)
     }
