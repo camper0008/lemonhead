@@ -37,7 +37,7 @@ fn draw_interact_prompt<C: Ctx>(ctx: &mut C, state: &State<C>) {
 
     let centered = (10.0 - text.width()) / 2.0;
 
-    ctx.enqueue_sprite((centered, 9.0 + offset), (text.width(), 1.0), &text);
+    ctx.draw_sprite((centered, 9.0 + offset), (text.width(), 1.0), &text);
 }
 
 pub fn game<C: Ctx>(ctx: &mut C) -> Result<GameResult, C::Error> {
@@ -95,7 +95,7 @@ pub fn game<C: Ctx>(ctx: &mut C) -> Result<GameResult, C::Error> {
 
         let use_alt = ctx.seconds_elapsed() % 0.5 > 0.25;
         let lemon_sprite = sprite::Actor::lemonhead_sprite(&lemonhead.state, use_alt);
-        ctx.enqueue_sprite((lemonhead.x, lemonhead.y), (1.0, 1.0), &lemon_sprite);
+        ctx.draw_sprite((lemonhead.x, lemonhead.y), (1.0, 1.0), &lemon_sprite);
 
         match state.scene_changed {
             None => (),

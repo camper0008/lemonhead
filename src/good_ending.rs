@@ -10,7 +10,7 @@ fn draw_layer_0<C: Ctx>(ctx: &mut C) {
 
     for i in 0..2 {
         let position = -animation_timer + f64::from(i * 10);
-        ctx.enqueue_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer0);
+        ctx.draw_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer0);
     }
 }
 
@@ -19,7 +19,7 @@ fn draw_layer_1<C: Ctx>(ctx: &mut C) {
 
     for i in 0..2 {
         let position = -animation_timer + f64::from(i * 10);
-        ctx.enqueue_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer1);
+        ctx.draw_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer1);
     }
 }
 
@@ -28,7 +28,7 @@ fn draw_layer_2<C: Ctx>(ctx: &mut C) {
 
     for i in 0..3 {
         let position = -animation_timer + f64::from(i * 16);
-        ctx.enqueue_sprite((position, 1.0), (16.0, 8.0), &Tile::CityLayer2);
+        ctx.draw_sprite((position, 1.0), (16.0, 8.0), &Tile::CityLayer2);
     }
 }
 
@@ -40,7 +40,7 @@ pub fn good_ending<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
         if ctx.key_down(Key::Quit) || ctx.key_down(Key::Interact) {
             break Ok(());
         }
-        ctx.enqueue_background_fill(Rgb(255, 255, 255));
+        ctx.draw_background_fill(Rgb(255, 255, 255));
 
         draw_layer_0(ctx);
         draw_layer_1(ctx);
@@ -53,8 +53,8 @@ pub fn good_ending<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
             Tile::LemonCar1
         };
 
-        ctx.enqueue_sprite((4.0 + x_offset, 8.0), (2.0, 1.0), &car);
-        ctx.enqueue_sprite((0.0, 9.0), (10.0, 1.0), &Tile::Ground);
+        ctx.draw_sprite((4.0 + x_offset, 8.0), (2.0, 1.0), &car);
+        ctx.draw_sprite((0.0, 9.0), (10.0, 1.0), &Tile::Ground);
         ctx.finish()?;
     }
 }

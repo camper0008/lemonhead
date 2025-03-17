@@ -76,19 +76,19 @@ impl Music {
 pub trait Ctx {
     type Error;
 
-    fn enqueue_background_fill(&mut self, color: Rgb);
-    fn enqueue_sprite(&mut self, position: (f64, f64), size: (f64, f64), sprite: &impl Sprite);
-    fn enqueue_border(&mut self) {
+    fn draw_background_fill(&mut self, color: Rgb);
+    fn draw_sprite(&mut self, position: (f64, f64), size: (f64, f64), sprite: &impl Sprite);
+    fn draw_border(&mut self) {
         let border_color = Rgb(50, 50, 50);
         let (left, top) = self.to_screen_position((0.0, 0.0));
         let (right, bottom) = self.to_screen_position((10.0, 10.0));
         let (win_width, win_height) = self.window_size();
-        self.enqueue_screen_rect(border_color, (0.0, 0.0), (left, win_height));
-        self.enqueue_screen_rect(border_color, (0.0, 0.0), (win_width, top));
-        self.enqueue_screen_rect(border_color, (0.0, bottom), (win_width, top));
-        self.enqueue_screen_rect(border_color, (right, 0.0), (left, win_height));
+        self.draw_screen_rect(border_color, (0.0, 0.0), (left, win_height));
+        self.draw_screen_rect(border_color, (0.0, 0.0), (win_width, top));
+        self.draw_screen_rect(border_color, (0.0, bottom), (win_width, top));
+        self.draw_screen_rect(border_color, (right, 0.0), (left, win_height));
     }
-    fn enqueue_screen_rect(&mut self, color: Rgb, position: (f64, f64), size: (f64, f64));
+    fn draw_screen_rect(&mut self, color: Rgb, position: (f64, f64), size: (f64, f64));
     fn to_screen_scale(&self, size: (f64, f64)) -> (f64, f64) {
         let (win_x, win_y) = self.window_size();
         let win_min = f64_min(win_x, win_y);
@@ -96,7 +96,6 @@ pub trait Ctx {
         let pixels_per_dot = win_min / 10.0;
         (size.0 * pixels_per_dot, size.1 * pixels_per_dot)
     }
-
     fn to_screen_position(&self, position: (f64, f64)) -> (f64, f64) {
         let (win_x, win_y) = self.window_size();
         let win_min = f64_min(win_x, win_y);

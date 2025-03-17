@@ -35,15 +35,15 @@ impl From<InteractableId> for Interactables {
 }
 
 impl MurderLivingRoom {
-    fn enqueue_house<C: Ctx>(&self, ctx: &mut C) {
-        ctx.enqueue_wallpaper(&Tile::StripeWallpaper);
-        ctx.enqueue_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
-        ctx.enqueue_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::TreeDayPicture);
-        ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::HousePicture);
-        ctx.enqueue_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Couch);
+    fn draw_house<C: Ctx>(&self, ctx: &mut C) {
+        ctx.draw_wallpaper(&Tile::StripeWallpaper);
+        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
+        ctx.draw_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::TreeDayPicture);
+        ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::HousePicture);
+        ctx.draw_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Couch);
     }
 
-    fn enqueue_dad<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
+    fn draw_dad<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
         let dad = if state.murder_living_room.dad_dead {
             Actor::Dad(Npc::Dead)
         } else if ctx.seconds_elapsed() % 1.0 < 0.5 {
@@ -52,21 +52,21 @@ impl MurderLivingRoom {
             Actor::Dad(Npc::IdleAlt)
         };
 
-        ctx.enqueue_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &dad);
+        ctx.draw_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &dad);
 
         if state.murder_living_room.dad_dead {
-            ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterRight);
-            ctx.enqueue_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterCenter);
-            ctx.enqueue_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterLeft);
+            ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterRight);
+            ctx.draw_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterCenter);
+            ctx.draw_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterLeft);
         }
     }
 }
 
 impl<C: Ctx> Scene<C> for MurderLivingRoom {
     fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) {
-        self.enqueue_house(ctx);
-        ctx.enqueue_ground();
-        self.enqueue_dad(ctx, state);
+        self.draw_house(ctx);
+        ctx.draw_ground();
+        self.draw_dad(ctx, state);
     }
 
     fn interact(

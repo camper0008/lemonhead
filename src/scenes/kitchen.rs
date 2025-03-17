@@ -46,11 +46,11 @@ impl From<InteractableId> for Interactables {
 }
 
 impl Kitchen {
-    fn enqueue_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
-        ctx.enqueue_ground();
-        ctx.enqueue_wallpaper(&Tile::KitchenBrick);
-        ctx.enqueue_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
-        ctx.enqueue_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Oven);
+    fn draw_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
+        ctx.draw_ground();
+        ctx.draw_wallpaper(&Tile::KitchenBrick);
+        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
+        ctx.draw_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Oven);
 
         let picture = if state.murder_living_room.dad_dead {
             Tile::LemonNightPicture
@@ -58,7 +58,7 @@ impl Kitchen {
             Tile::TreeNightPicture
         };
 
-        ctx.enqueue_sprite((9.0, GROUND_LEVEL), (1.0, 1.0), &picture);
+        ctx.draw_sprite((9.0, GROUND_LEVEL), (1.0, 1.0), &picture);
 
         let living_room_door = if state.kitchen.all_coins_collected() {
             Tile::DoorOpen
@@ -66,33 +66,33 @@ impl Kitchen {
             Tile::DoorClosed
         };
 
-        ctx.enqueue_sprite((8.0, GROUND_LEVEL), (1.0, 1.0), &living_room_door);
+        ctx.draw_sprite((8.0, GROUND_LEVEL), (1.0, 1.0), &living_room_door);
 
         if state.murder_living_room.dad_dead {
-            ctx.enqueue_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterRight);
-            ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterLeft);
+            ctx.draw_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterRight);
+            ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterLeft);
 
-            ctx.enqueue_sprite((6.0, GROUND_LEVEL - 1.0), (1.0, 1.0), &Blood::PraiseLemon);
+            ctx.draw_sprite((6.0, GROUND_LEVEL - 1.0), (1.0, 1.0), &Blood::PraiseLemon);
         }
 
         if !state.kitchen.coins[0] {
-            ctx.enqueue_item(&Tile::Coin, 3.0);
+            ctx.draw_item(&Tile::Coin, 3.0);
         }
         if !state.kitchen.coins[1] {
-            ctx.enqueue_item(&Tile::Coin, 4.0);
+            ctx.draw_item(&Tile::Coin, 4.0);
         }
         if !state.kitchen.coins[2] {
-            ctx.enqueue_item(&Tile::Coin, 5.0);
+            ctx.draw_item(&Tile::Coin, 5.0);
         }
         if !state.kitchen.weapon_collected {
-            ctx.enqueue_item(&Tile::Weapon, 6.0);
+            ctx.draw_item(&Tile::Weapon, 6.0);
         }
     }
 }
 
 impl<C: Ctx> Scene<C> for Kitchen {
     fn draw(&self, ctx: &mut C, state: &State<C>) {
-        self.enqueue_house(ctx, state);
+        self.draw_house(ctx, state);
     }
 
     fn prepare_items(&self, state: &State<C>) -> Items {

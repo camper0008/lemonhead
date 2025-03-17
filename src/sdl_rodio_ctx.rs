@@ -208,12 +208,12 @@ impl SdlRodioCtx {
 impl Ctx for SdlRodioCtx {
     type Error = String;
 
-    fn enqueue_background_fill(&mut self, color: crate::ctx::Rgb) {
+    fn draw_background_fill(&mut self, color: crate::ctx::Rgb) {
         self.render_queue
             .push_back(QueueItem::FillBackground(color));
     }
 
-    fn enqueue_screen_rect(
+    fn draw_screen_rect(
         &mut self,
         color: crate::ctx::Rgb,
         position: (f64, f64),
@@ -226,7 +226,7 @@ impl Ctx for SdlRodioCtx {
         });
     }
 
-    fn enqueue_sprite(&mut self, position: (f64, f64), size: (f64, f64), sprite: &impl Sprite) {
+    fn draw_sprite(&mut self, position: (f64, f64), size: (f64, f64), sprite: &impl Sprite) {
         let position = self.to_screen_position(position);
         let size = self.to_screen_scale(size);
         self.render_queue.push_back(QueueItem::Sprite {
@@ -283,7 +283,7 @@ impl Ctx for SdlRodioCtx {
     }
 
     fn finish(&mut self) -> Result<(), Self::Error> {
-        self.enqueue_border();
+        self.draw_border();
         self.draw_queue()?;
         self.canvas.present();
         std::thread::sleep(std::time::Duration::new(0, 1_000_000_000u32 / 60));

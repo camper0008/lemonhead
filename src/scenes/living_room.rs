@@ -38,25 +38,25 @@ impl From<InteractableId> for Interactables {
 }
 
 impl LivingRoom {
-    fn enqueue_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
-        ctx.enqueue_ground();
-        ctx.enqueue_wallpaper(&Tile::StripeWallpaper);
+    fn draw_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
+        ctx.draw_ground();
+        ctx.draw_wallpaper(&Tile::StripeWallpaper);
 
-        ctx.enqueue_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
+        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
 
-        ctx.enqueue_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::TreeDayPicture);
-        ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::HousePicture);
-        ctx.enqueue_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Couch);
+        ctx.draw_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::TreeDayPicture);
+        ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::HousePicture);
+        ctx.draw_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Couch);
 
         if !state.living_room.coins[0] {
-            ctx.enqueue_item(&Tile::Coin, 3.0);
+            ctx.draw_item(&Tile::Coin, 3.0);
         }
         if !state.living_room.coins[1] {
-            ctx.enqueue_item(&Tile::Coin, 8.0);
+            ctx.draw_item(&Tile::Coin, 8.0);
         }
     }
 
-    fn enqueue_confrontation<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
+    fn draw_confrontation<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
         if !state.living_room.all_coins_collected() {
             return;
         }
@@ -81,7 +81,7 @@ impl LivingRoom {
             ctx.seconds_elapsed() % 1.0 > 0.5,
             Actor::Dad,
         );
-        ctx.enqueue_sprite(
+        ctx.draw_sprite(
             (
                 14.0 - state.living_room.dad_attack_seconds * 2.0,
                 GROUND_LEVEL,
@@ -91,15 +91,15 @@ impl LivingRoom {
         );
 
         if let Some(bubble) = bubble {
-            ctx.enqueue_sprite((9.0, GROUND_LEVEL), (1.0, 1.0), &bubble);
+            ctx.draw_sprite((9.0, GROUND_LEVEL), (1.0, 1.0), &bubble);
         }
     }
 }
 
 impl<C: Ctx> Scene<C> for LivingRoom {
     fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) {
-        self.enqueue_house(ctx, state);
-        self.enqueue_confrontation(ctx, state);
+        self.draw_house(ctx, state);
+        self.draw_confrontation(ctx, state);
     }
 
     fn interact(

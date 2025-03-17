@@ -37,14 +37,14 @@ impl From<InteractableId> for Interactables {
 
 impl ChildRoom {
     fn draw_house<C: Ctx>(&self, ctx: &mut C) {
-        ctx.enqueue_ground();
-        ctx.enqueue_wallpaper(&Tile::DotWallpaper);
-        ctx.enqueue_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
+        ctx.draw_ground();
+        ctx.draw_wallpaper(&Tile::DotWallpaper);
+        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
 
-        ctx.enqueue_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::ChildPoster);
-        ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Computer);
-        ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::OfficeChair);
-        ctx.enqueue_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bed);
+        ctx.draw_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::ChildPoster);
+        ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Computer);
+        ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::OfficeChair);
+        ctx.draw_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bed);
     }
 
     fn draw_child<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
@@ -56,16 +56,16 @@ impl ChildRoom {
             Actor::Child(Npc::IdleAlt)
         };
 
-        ctx.enqueue_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &child);
+        ctx.draw_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &child);
 
         if state.child_room.child_stabs > 0 {
-            ctx.enqueue_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterCenter);
+            ctx.draw_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterCenter);
         }
         if state.child_room.child_stabs > 1 {
-            ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterRight);
+            ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterRight);
         }
         if state.child_room.child_stabs > 2 {
-            ctx.enqueue_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterLeft);
+            ctx.draw_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterLeft);
         }
     }
 }
