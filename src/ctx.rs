@@ -60,7 +60,7 @@ impl Music {
             Music::HeartbeatChild => "assets/heartbeat-child.ogg",
             Music::HeartbeatChildWithLemon => "assets/heartbeat-child-with-lemon.ogg",
             Music::Ascend => "assets/ascension.ogg",
-            Music::RipBozo => "assets/rip-bozo.ogg",
+            Music::RipBozo => "assets/ripbozo.ogg",
         }
     }
 

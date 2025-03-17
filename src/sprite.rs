@@ -272,7 +272,7 @@ impl Sprite for Tile {
     fn size(&self) -> (u32, u32) {
         let (x, y) = match self {
             Tile::Logo => (4, 4),
-            Tile::CityLayer2 | Tile::LemonCar0 | Tile::LemonCar1 => (4, 1),
+            Tile::CityLayer2 | Tile::LemonCar0 | Tile::LemonCar1 => (4, 2),
             Tile::IntroductionText => (4, 1),
             Tile::IntroductionGoalsText => (8, 1),
             Tile::RememberText => (6, 1),

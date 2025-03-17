@@ -8,6 +8,7 @@ pub fn dead_ending<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
     ctx.set_music(Music::RipBozo)?;
 
     loop {
+        ctx.setup()?;
         ctx.draw_background_fill(Rgb(54, 54, 54));
         if ctx.key_down(Key::Quit) || ctx.key_down(Key::Interact) {
             break Ok(());

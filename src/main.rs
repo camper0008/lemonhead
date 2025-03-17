@@ -19,6 +19,7 @@ use sdl_rodio_ctx::SdlRodioCtx;
 
 fn main() -> Result<(), String> {
     let mut ctx = SdlRodioCtx::new()?;
+
     if let menu::MenuResult::Quit = menu(&mut ctx)? {
         return Ok(());
     };
