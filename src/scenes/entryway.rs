@@ -138,12 +138,14 @@ impl<C: Ctx> Scene<C> for Entryway {
         items
     }
 
-    fn interact(&self, ctx: &mut C, state: &mut State<C>, position: f64) -> Result<(), C::Error> {
-        let Some(closest) = self.closest_item_within_distance(state, position) else {
-            return Ok(());
-        };
+    fn interact(
+        &self,
+        ctx: &mut C,
+        state: &mut State<C>,
+        item: Box<dyn Item>,
+    ) -> Result<(), C::Error> {
         ctx.play_effect(Effect::Interact)?;
-        match closest.id().into() {
+        match item.id().into() {
             Interactables::ExitDoor => {
                 if state.murder_living_room.dad_dead && !state.child_room.child_dead() {
                     return Ok(());

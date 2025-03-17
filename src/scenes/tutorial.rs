@@ -79,11 +79,14 @@ impl<C: Ctx> Scene<C> for Tutorial {
         items
     }
 
-    fn interact(&self, ctx: &mut C, state: &mut State<C>, position: f64) -> Result<(), C::Error> {
-        let closest = self.closest_item_within_distance(state, position);
-        let Some(item) = closest else { return Ok(()) };
+    fn interact(
+        &self,
+        ctx: &mut C,
+        state: &mut State<C>,
+        item: Box<dyn Item>,
+    ) -> Result<(), C::Error> {
         ctx.play_effect(Effect::Interact)?;
-        match Interactables::from(item.id()) {
+        match item.id().into() {
             Interactables::Coin => state.tutorial.coin = true,
             Interactables::Bike => {
                 state.scene_changed = Some((1.0, Scenes::Outside));

@@ -75,7 +75,9 @@ pub fn game<C: Ctx>(ctx: &mut C) -> Result<GameResult, C::Error> {
         }
 
         if ctx.key_down(Key::Interact) {
-            scene.interact(ctx, &mut state, lemonhead.x)?;
+            if let Some(item) = scene.closest_item_within_distance(&state, lemonhead.x) {
+                scene.interact(ctx, &mut state, item)?;
+            }
         }
 
         if let Some(ref ending) = state.ending_chosen {

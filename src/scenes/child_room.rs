@@ -87,11 +87,13 @@ impl<C: Ctx> Scene<C> for ChildRoom {
         items
     }
 
-    fn interact(&self, ctx: &mut C, state: &mut State<C>, position: f64) -> Result<(), C::Error> {
-        let Some(closest) = self.closest_item_within_distance(state, position) else {
-            return Ok(());
-        };
-        match closest.id().into() {
+    fn interact(
+        &self,
+        ctx: &mut C,
+        state: &mut State<C>,
+        item: Box<dyn Item>,
+    ) -> Result<(), C::Error> {
+        match item.id().into() {
             Interactables::ExitDoor => {
                 ctx.play_effect(Effect::Interact)?;
                 if state.child_room.child_stabs < 3 {

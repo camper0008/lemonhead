@@ -73,12 +73,9 @@ impl<C: Ctx> Scene<C> for MurderLivingRoom {
         &self,
         ctx: &mut C,
         state: &mut crate::state::State<C>,
-        position: f64,
+        item: Box<dyn Item>,
     ) -> Result<(), C::Error> {
-        let Some(closest) = self.closest_item_within_distance(state, position) else {
-            return Ok(());
-        };
-        match closest.id().into() {
+        match item.id().into() {
             Interactables::ExitDoor => {
                 ctx.play_effect(Effect::Interact)?;
                 state.scene_changed = Some((8.0, Scenes::Kitchen));

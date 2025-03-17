@@ -30,7 +30,12 @@ impl Items {
 
 pub trait Scene<C: Ctx> {
     fn draw(&self, ctx: &mut C, state: &State<C>);
-    fn interact(&self, ctx: &mut C, state: &mut State<C>, position: f64) -> Result<(), C::Error>;
+    fn interact(
+        &self,
+        ctx: &mut C,
+        state: &mut State<C>,
+        item: Box<dyn Item>,
+    ) -> Result<(), C::Error>;
     fn prepare_items(&self, state: &State<C>) -> Items;
     fn closest_item_within_distance(
         &self,
@@ -87,9 +92,9 @@ impl<C: Ctx> Scene<C> for Scenes<C> {
         &self,
         ctx: &mut C,
         state: &mut State<C>,
-        position: f64,
+        item: Box<dyn Item>,
     ) -> Result<(), <C as Ctx>::Error> {
-        self.inner().interact(ctx, state, position)
+        self.inner().interact(ctx, state, item)
     }
 
     fn prepare_items(&self, state: &State<C>) -> Items {

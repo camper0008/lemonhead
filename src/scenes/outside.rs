@@ -141,12 +141,14 @@ impl<C: Ctx> Scene<C> for Outside {
         items
     }
 
-    fn interact(&self, ctx: &mut C, state: &mut State<C>, position: f64) -> Result<(), C::Error> {
-        let Some(closest) = self.closest_item_within_distance(state, position) else {
-            return Ok(());
-        };
+    fn interact(
+        &self,
+        ctx: &mut C,
+        state: &mut State<C>,
+        item: Box<dyn Item>,
+    ) -> Result<(), C::Error> {
         ctx.play_effect(Effect::Interact)?;
-        match closest.id().into() {
+        match item.id().into() {
             Interactables::Key => state.outside.key_collected = true,
             Interactables::Ascension => {
                 state.ending_chosen = Some(EndingChosen::Ascended);
