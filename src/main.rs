@@ -22,6 +22,6 @@ fn main() -> Result<(), String> {
     match result {
         game::GameResult::GoodEnding => todo!(),
         game::GameResult::Dead => todo!(),
-        game::GameResult::Quit => return Ok(()),
-    };
+        game::GameResult::Quit => Ok(()),
+    }
 }

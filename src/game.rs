@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use crate::{
     ctx::{Ctx, Key},
     globals::GROUND_LEVEL,

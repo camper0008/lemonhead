@@ -68,15 +68,14 @@ impl Outside {
         [Tile::LeftTriangle, Tile::Block, Tile::RightTriangle]
             .into_iter()
             .enumerate()
-            .map(|(offset, tile)| {
+            .try_for_each(|(offset, tile)| {
                 ctx.draw_sprite(
                     (HOUSE_OFFSET + offset as f64, GROUND_LEVEL - 1.0),
                     (1.0, 1.0),
                     &tile,
                 )?;
                 Ok(())
-            })
-            .collect::<Result<(), C::Error>>()?;
+            })?;
 
         let door_texture = if state.outside.key_collected {
             Tile::DoorOpen

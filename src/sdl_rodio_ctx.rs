@@ -1,6 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    marker::PhantomData,
+    collections::{hash_map::Entry, HashMap, HashSet, VecDeque},
     time::Instant,
 };
 
@@ -10,8 +9,8 @@ use sdl2::{
     keyboard::Keycode,
     pixels::Color,
     rect::Rect,
-    render::{Texture, TextureCreator, WindowCanvas},
-    video::{Window, WindowContext},
+    render::WindowCanvas,
+    video::Window,
     Sdl,
 };
 
@@ -159,9 +158,9 @@ impl SdlRodioCtx {
                     position,
                     size,
                 } => {
-                    if !texture_cache.contains_key(&sprite_path) {
+                    if let Entry::Vacant(entry) = texture_cache.entry(sprite_path) {
                         let texture = texture_creator.load_texture(sprite_path)?;
-                        texture_cache.insert(sprite_path, texture);
+                        entry.insert(texture);
                     }
 
                     let texture = texture_cache.get(&sprite_path).expect("we have to insert");

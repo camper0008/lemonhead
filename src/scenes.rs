@@ -24,7 +24,7 @@ impl Items {
     }
 
     pub fn push(&mut self, position: f64, item: impl Item + 'static) {
-        self.0.push((position as f64, Box::new(item)));
+        self.0.push((position, Box::new(item)));
     }
 }
 
@@ -37,7 +37,7 @@ pub trait Scene<C: Ctx> {
         state: &State<C>,
         position: f64,
     ) -> Option<Box<dyn Item>> {
-        let items = self.prepare_items(&state).0;
+        let items = self.prepare_items(state).0;
         if items.is_empty() {
             return None;
         }
