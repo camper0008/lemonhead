@@ -28,6 +28,8 @@ pub enum Effect {
 pub enum Music {
     Outside,
     Lemonhead,
+    RipBozo,
+    Rich,
     Run,
     Heartbeat,
     HeartbeatChild,
@@ -50,6 +52,7 @@ impl Effect {
 impl Music {
     pub fn path(&self) -> &'static str {
         match self {
+            Music::Rich => "assets/rich.ogg",
             Music::Outside => "assets/outside.ogg",
             Music::Lemonhead => "assets/lemonhead.ogg",
             Music::Run => "assets/run.ogg",
@@ -57,12 +60,14 @@ impl Music {
             Music::HeartbeatChild => "assets/heartbeat-child.ogg",
             Music::HeartbeatChildWithLemon => "assets/heartbeat-child-with-lemon.ogg",
             Music::Ascend => "assets/ascension.ogg",
+            Music::RipBozo => "assets/rip-bozo.ogg",
         }
     }
 
     pub fn volume(&self) -> f32 {
         match self {
             Music::Lemonhead | Music::Ascend => 1.0,
+            Music::RipBozo => 0.75,
             _ => 0.5,
         }
     }

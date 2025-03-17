@@ -1,109 +1,66 @@
-use sdl2::render::Texture;
-use std::{f64::consts::PI, path::Path, sync::mpsc::Sender, time::Duration};
+use std::f64::consts::PI;
 
-use sdl2::{
-    event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, render::WindowCanvas, Sdl,
+use crate::{
+    ctx::{Ctx, Key, Music, Rgb},
+    sprite::Tile,
 };
 
-use crate::{audio::Configuration, sprite::Generic};
-
-fn draw_layer_0(
-    canvas: &mut WindowCanvas,
-    texture: &Texture,
-    animation_timer: f64,
-) -> Result<(), String> {
-    let animation_timer = animation_timer % 10.0;
+fn draw_layer_0<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
+    let animation_timer = ctx.seconds_elapsed() % 10.0;
 
     for i in 0..2 {
         let position = -animation_timer + f64::from(i * 10);
-        Generic::CityLayer0.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
+        ctx.draw_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer0)?;
     }
 
     Ok(())
 }
 
-fn draw_layer_1(
-    canvas: &mut WindowCanvas,
-    texture: &Texture,
-    animation_timer: f64,
-) -> Result<(), String> {
-    let animation_timer = (animation_timer * 2.5) % 10.0;
+fn draw_layer_1<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
+    let animation_timer = (ctx.seconds_elapsed() * 2.5) % 10.0;
 
     for i in 0..2 {
         let position = -animation_timer + f64::from(i * 10);
-        Generic::CityLayer1.draw(canvas, texture, (position, 1.0), (10.0, 9.0))?;
+        ctx.draw_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer1)?;
     }
 
     Ok(())
 }
 
-fn draw_layer_2(
-    canvas: &mut WindowCanvas,
-    texture: &Texture,
-    animation_timer: f64,
-) -> Result<(), String> {
-    let animation_timer = animation_timer * 5.0 % 16.0;
+fn draw_layer_2<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
+    let animation_timer = ctx.seconds_elapsed() * 5.0 % 16.0;
 
     for i in 0..3 {
         let position = -animation_timer + f64::from(i * 16);
-        Generic::CityLayer2.draw(canvas, texture, (position, 1.0), (16.0, 8.0))?;
+        ctx.draw_sprite((position, 1.0), (16.0, 8.0), &Tile::CityLayer2)?;
     }
 
     Ok(())
 }
 
-pub fn good_ending(
-    sdl_context: &Sdl,
-    canvas: &mut WindowCanvas,
-    music_sender: &Sender<Configuration>,
-) -> Result<(), String> {
-    let mut animation_timer = 0.0;
+pub fn good_ending<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
+    ctx.set_music(Music::Rich)?;
 
-    music_sender
-        .send(Configuration::Play(1.0, "assets/rich.ogg"))
-        .unwrap();
+    loop {
+        ctx.pre_step()?;
+        if ctx.key_down(Key::Quit) || ctx.key_down(Key::Interact) {
+            break Ok(());
+        }
+        ctx.fill_background(Rgb(255, 255, 255))?;
 
-    let texture_creator = canvas.texture_creator();
-    let texture = texture_creator.load_texture(Path::new("assets/tile.png"))?;
+        draw_layer_0(ctx)?;
+        draw_layer_1(ctx)?;
+        draw_layer_2(ctx)?;
 
-    'game_loop: loop {
-        let delta_time = 1.0 / 60.0;
-
-        canvas.set_draw_color(Color::RGB(255, 255, 255));
-        canvas.clear();
-
-        draw_layer_0(canvas, &texture, animation_timer)?;
-        draw_layer_1(canvas, &texture, animation_timer)?;
-        draw_layer_2(canvas, &texture, animation_timer)?;
-
-        let x_offset = (animation_timer % 1.0 * PI * 2.0).sin() * 0.125;
-        let car = if animation_timer % 0.2 < 0.1 {
-            Generic::LemonCar0
+        let x_offset = (ctx.seconds_elapsed() % 1.0 * PI * 2.0).sin() * 0.125;
+        let car = if ctx.seconds_elapsed() % 0.2 < 0.1 {
+            Tile::LemonCar0
         } else {
-            Generic::LemonCar1
+            Tile::LemonCar1
         };
 
-        car.draw(canvas, &texture, (4.0 + x_offset, 8.0), (2.0, 1.0))?;
-
-        Generic::Ground.draw(canvas, &texture, (0.0, 9.0), (10.0, 1.0))?;
-
-        canvas.present();
-        for event in sdl_context.event_pump()?.poll_iter() {
-            match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => break 'game_loop Ok(()),
-                Event::KeyDown {
-                    keycode: Some(Keycode::Space),
-                    ..
-                } => break 'game_loop Ok(()),
-                _ => (),
-            }
-        }
-
-        animation_timer += delta_time;
-        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        ctx.draw_sprite((4.0 + x_offset, 8.0), (2.0, 1.0), &car)?;
+        ctx.draw_sprite((0.0, 9.0), (10.0, 1.0), &Tile::Ground)?;
+        ctx.post_step()?;
     }
 }
