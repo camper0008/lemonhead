@@ -37,41 +37,36 @@ impl From<InteractableId> for Interactables {
 }
 
 impl Tutorial {
-    fn draw_scenery<C: Ctx>(&self, ctx: &mut C) -> Result<(), C::Error> {
-        ctx.draw_sprite((8.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bike)?;
+    fn enqueue_scenery<C: Ctx>(&self, ctx: &mut C) {
+        ctx.enqueue_sprite((8.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bike);
 
         for x in 0..10 {
-            ctx.draw_sprite((x as f64, GROUND_LEVEL), (1.0, 1.0), &Tile::Grass)?;
+            ctx.enqueue_sprite((x as f64, GROUND_LEVEL), (1.0, 1.0), &Tile::Grass);
         }
 
-        ctx.draw_sprite((1.0, 1.0), (1.0, 1.0), &Tile::Sun)?;
-
-        Ok(())
+        ctx.enqueue_sprite((1.0, 1.0), (1.0, 1.0), &Tile::Sun);
     }
 
-    fn draw_text<C: Ctx>(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
+    fn enqueue_text<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
         if !state.tutorial.coin {
-            ctx.draw_sprite((3.0, 2.0), (4.0, 1.0), &Tile::IntroductionText)?;
-            ctx.draw_sprite((1.0, 3.0), (8.0, 1.0), &Tile::IntroductionGoalsText)?;
+            ctx.enqueue_sprite((3.0, 2.0), (4.0, 1.0), &Tile::IntroductionText);
+            ctx.enqueue_sprite((1.0, 3.0), (8.0, 1.0), &Tile::IntroductionGoalsText);
         } else {
-            ctx.draw_sprite((2.0, 2.5), (6.0, 1.0), &Tile::RememberText)?;
-            ctx.draw_sprite((6.0, 9.25), (1.0, 0.5), &Tile::VoicesText)?;
+            ctx.enqueue_sprite((2.0, 2.5), (6.0, 1.0), &Tile::RememberText);
+            ctx.enqueue_sprite((6.0, 9.25), (1.0, 0.5), &Tile::VoicesText);
         }
-        Ok(())
     }
 }
 
 impl<C: Ctx> Scene<C> for Tutorial {
-    fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) -> Result<(), C::Error> {
-        ctx.fill_background(Rgb(255, 255, 255))?;
-        ctx.draw_ground()?;
-        self.draw_scenery(ctx)?;
-        self.draw_text(ctx, state)?;
+    fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) {
+        ctx.enqueue_background_fill(Rgb(255, 255, 255));
+        ctx.enqueue_ground();
+        self.enqueue_scenery(ctx);
+        self.enqueue_text(ctx, state);
         if !state.tutorial.coin {
-            ctx.draw_item(&Tile::Coin, 4.0)?;
+            ctx.enqueue_item(&Tile::Coin, 4.0);
         }
-
-        Ok(())
     }
 
     fn prepare_items(&self, state: &State<C>) -> Items {

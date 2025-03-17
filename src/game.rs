@@ -1,7 +1,7 @@
 use crate::{
     ctx::{Ctx, Key},
     globals::GROUND_LEVEL,
-    scenes::Scenes,
+    scenes::{Scene, Scenes},
     sprite::{self, ActorState, Text},
     state::{EndingChosen, State},
 };
@@ -18,7 +18,7 @@ struct Lemonhead {
     state: ActorState,
 }
 
-fn draw_interact_prompt<C: Ctx>(ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
+fn draw_interact_prompt<C: Ctx>(ctx: &mut C, state: &State<C>) {
     let offset = (ctx.seconds_elapsed() * std::f64::consts::PI * 2.0).sin() * 0.05;
 
     let text = if !state.living_room.has_escaped_dad {
@@ -37,8 +37,7 @@ fn draw_interact_prompt<C: Ctx>(ctx: &mut C, state: &State<C>) -> Result<(), C::
 
     let centered = (10.0 - text.width()) / 2.0;
 
-    ctx.draw_sprite((centered, 9.0 + offset), (text.width(), 1.0), &text)?;
-    Ok(())
+    ctx.enqueue_sprite((centered, 9.0 + offset), (text.width(), 1.0), &text);
 }
 
 pub fn game<C: Ctx>(ctx: &mut C) -> Result<GameResult, C::Error> {
@@ -52,16 +51,13 @@ pub fn game<C: Ctx>(ctx: &mut C) -> Result<GameResult, C::Error> {
     ctx.set_music(crate::ctx::Music::Outside)?;
     let mut elapsed_last_iter = ctx.seconds_elapsed();
     loop {
-        ctx.pre_step()?;
+        ctx.setup()?;
         if ctx.key_down(Key::Quit) {
             break Ok(GameResult::Quit);
         }
-        scene.inner().draw(ctx, &state)?;
-        if scene
-            .inner()
-            .should_draw_interact_popup(&state, lemonhead.x)
-        {
-            draw_interact_prompt(ctx, &state)?;
+        scene.draw(ctx, &state);
+        if scene.should_draw_interact_popup(&state, lemonhead.x) {
+            draw_interact_prompt(ctx, &state);
         }
 
         lemonhead.state = ActorState::Idle;
@@ -79,7 +75,7 @@ pub fn game<C: Ctx>(ctx: &mut C) -> Result<GameResult, C::Error> {
         }
 
         if ctx.key_down(Key::Interact) {
-            scene.inner().interact(ctx, &mut state, lemonhead.x)?;
+            scene.interact(ctx, &mut state, lemonhead.x)?;
         }
 
         if let Some(ref ending) = state.ending_chosen {
@@ -99,7 +95,7 @@ pub fn game<C: Ctx>(ctx: &mut C) -> Result<GameResult, C::Error> {
 
         let use_alt = ctx.seconds_elapsed() % 0.5 > 0.25;
         let lemon_sprite = sprite::Actor::lemonhead_sprite(&lemonhead.state, use_alt);
-        ctx.draw_sprite((lemonhead.x, lemonhead.y), (1.0, 1.0), &lemon_sprite)?;
+        ctx.enqueue_sprite((lemonhead.x, lemonhead.y), (1.0, 1.0), &lemon_sprite);
 
         match state.scene_changed {
             None => (),
@@ -117,6 +113,6 @@ pub fn game<C: Ctx>(ctx: &mut C) -> Result<GameResult, C::Error> {
                 break Ok(GameResult::Dead);
             }
         }
-        ctx.post_step()?;
+        ctx.finish()?;
     }
 }

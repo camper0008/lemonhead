@@ -43,19 +43,19 @@ impl From<InteractableId> for Interactables {
 }
 
 impl Outside {
-    fn draw_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
-        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bike)?;
+    fn enqueue_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
+        ctx.enqueue_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bike);
 
         for i in 0..=2 {
-            ctx.draw_sprite(
+            ctx.enqueue_sprite(
                 (HOUSE_OFFSET + i as f64, GROUND_LEVEL),
                 (1.0, 1.0),
                 &Tile::HouseBrick,
-            )?;
+            );
         }
 
         for x in 0..10 {
-            ctx.draw_sprite((x as f64, GROUND_LEVEL), (1.0, 1.0), &Tile::Grass)?;
+            ctx.enqueue_sprite((x as f64, GROUND_LEVEL), (1.0, 1.0), &Tile::Grass);
         }
 
         let sun_tile = if state.child_room.child_dead() {
@@ -63,19 +63,18 @@ impl Outside {
         } else {
             Tile::Sun
         };
-        ctx.draw_sprite((1.0, 1.0), (1.0, 1.0), &sun_tile)?;
+        ctx.enqueue_sprite((1.0, 1.0), (1.0, 1.0), &sun_tile);
 
         [Tile::LeftTriangle, Tile::Block, Tile::RightTriangle]
             .into_iter()
             .enumerate()
-            .try_for_each(|(offset, tile)| {
-                ctx.draw_sprite(
+            .for_each(|(offset, tile)| {
+                ctx.enqueue_sprite(
                     (HOUSE_OFFSET + offset as f64, GROUND_LEVEL - 1.0),
                     (1.0, 1.0),
                     &tile,
-                )?;
-                Ok(())
-            })?;
+                );
+            });
 
         let door_texture = if state.outside.key_collected {
             Tile::DoorOpen
@@ -83,11 +82,11 @@ impl Outside {
             Tile::DoorClosed
         };
 
-        ctx.draw_sprite(
+        ctx.enqueue_sprite(
             (HOUSE_OFFSET + 1.0, GROUND_LEVEL),
             (1.0, 1.0),
             &door_texture,
-        )?;
+        );
 
         if state.child_room.child_dead() {
             let ascension_offset = ctx.seconds_elapsed() % 4.0;
@@ -101,28 +100,25 @@ impl Outside {
                 Tile::Ascension3
             };
 
-            ctx.draw_sprite((3.0, -2.0), (1.0, 4.0), &sprite)?;
-            ctx.draw_sprite((3.0, 2.0), (1.0, 4.0), &sprite)?;
+            ctx.enqueue_sprite((3.0, -2.0), (1.0, 4.0), &sprite);
+            ctx.enqueue_sprite((3.0, 2.0), (1.0, 4.0), &sprite);
         }
 
         if !state.outside.key_collected {
-            ctx.draw_item(&Tile::Key, 3.0)?;
+            ctx.enqueue_item(&Tile::Key, 3.0);
         }
-
-        Ok(())
     }
 }
 
 impl<C: Ctx> Scene<C> for Outside {
-    fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) -> Result<(), C::Error> {
+    fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) {
         if state.child_room.child_dead() {
-            ctx.fill_background(Rgb(217, 87, 99))?;
+            ctx.enqueue_background_fill(Rgb(217, 87, 99));
         } else {
-            ctx.fill_background(Rgb(255, 255, 255))?;
+            ctx.enqueue_background_fill(Rgb(255, 255, 255));
         }
-        self.draw_house(ctx, state)?;
-        ctx.draw_ground()?;
-        Ok(())
+        self.enqueue_house(ctx, state);
+        ctx.enqueue_ground();
     }
 
     fn prepare_items(&self, state: &State<C>) -> Items {

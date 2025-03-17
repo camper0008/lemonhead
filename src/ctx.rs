@@ -75,13 +75,20 @@ impl Music {
 
 pub trait Ctx {
     type Error;
-    fn fill_background(&mut self, color: Rgb) -> Result<(), Self::Error>;
-    fn draw_sprite(
-        &mut self,
-        position: (f64, f64),
-        size: (f64, f64),
-        sprite: &impl Sprite,
-    ) -> Result<(), Self::Error>;
+
+    fn enqueue_background_fill(&mut self, color: Rgb);
+    fn enqueue_sprite(&mut self, position: (f64, f64), size: (f64, f64), sprite: &impl Sprite);
+    fn enqueue_border(&mut self) {
+        let border_color = Rgb(50, 50, 50);
+        let (left, top) = self.to_screen_position((0.0, 0.0));
+        let (right, bottom) = self.to_screen_position((10.0, 10.0));
+        let (win_width, win_height) = self.window_size();
+        self.enqueue_screen_rect(border_color, (0.0, 0.0), (left, win_height));
+        self.enqueue_screen_rect(border_color, (0.0, 0.0), (win_width, top));
+        self.enqueue_screen_rect(border_color, (0.0, bottom), (win_width, top));
+        self.enqueue_screen_rect(border_color, (right, 0.0), (left, win_height));
+    }
+    fn enqueue_screen_rect(&mut self, color: Rgb, position: (f64, f64), size: (f64, f64));
     fn to_screen_scale(&self, size: (f64, f64)) -> (f64, f64) {
         let (win_x, win_y) = self.window_size();
         let win_min = f64_min(win_x, win_y);
@@ -102,30 +109,14 @@ pub trait Ctx {
             center_y + position.1 * pixels_per_dot,
         )
     }
+    fn window_size(&self) -> (f64, f64);
 
-    fn fill_border(&mut self) -> Result<(), Self::Error> {
-        let border_color = Rgb(50, 50, 50);
-        let (left, top) = self.to_screen_position((0.0, 0.0));
-        let (right, bottom) = self.to_screen_position((10.0, 10.0));
-        let (win_width, win_height) = self.window_size();
-        self.fill_screen_rect(border_color, (0.0, 0.0), (left, win_height))?;
-        self.fill_screen_rect(border_color, (0.0, 0.0), (win_width, top))?;
-        self.fill_screen_rect(border_color, (0.0, bottom), (win_width, top))?;
-        self.fill_screen_rect(border_color, (right, 0.0), (left, win_height))?;
-        Ok(())
-    }
-    fn fill_screen_rect(
-        &mut self,
-        color: Rgb,
-        position: (f64, f64),
-        size: (f64, f64),
-    ) -> Result<(), Self::Error>;
     fn play_effect(&mut self, effect: Effect) -> Result<(), Self::Error>;
     fn set_music(&mut self, music: Music) -> Result<(), Self::Error>;
     fn stop_music(&mut self) -> Result<(), Self::Error>;
-    fn window_size(&self) -> (f64, f64);
     fn key_down(&self, key: Key) -> bool;
-    fn pre_step(&mut self) -> Result<(), Self::Error>;
-    fn post_step(&mut self) -> Result<(), Self::Error>;
+
+    fn setup(&mut self) -> Result<(), Self::Error>;
+    fn finish(&mut self) -> Result<(), Self::Error>;
     fn seconds_elapsed(&self) -> f64;
 }

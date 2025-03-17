@@ -29,7 +29,7 @@ impl Items {
 }
 
 pub trait Scene<C: Ctx> {
-    fn draw(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error>;
+    fn draw(&self, ctx: &mut C, state: &State<C>);
     fn interact(&self, ctx: &mut C, state: &mut State<C>, position: f64) -> Result<(), C::Error>;
     fn prepare_items(&self, state: &State<C>) -> Items;
     fn closest_item_within_distance(
@@ -65,7 +65,7 @@ pub enum Scenes<C: Ctx> {
 }
 
 impl<C: Ctx> Scenes<C> {
-    pub fn inner(&self) -> &dyn Scene<C> {
+    fn inner(&self) -> &dyn Scene<C> {
         match self {
             Self::Tutorial => &tutorial::Tutorial,
             Self::Entryway => &entryway::Entryway,
@@ -76,5 +76,23 @@ impl<C: Ctx> Scenes<C> {
             Self::ChildRoom => &child_room::ChildRoom,
             Self::_Phantom(_) => unreachable!(),
         }
+    }
+}
+impl<C: Ctx> Scene<C> for Scenes<C> {
+    fn draw(&self, ctx: &mut C, state: &State<C>) {
+        self.inner().draw(ctx, state)
+    }
+
+    fn interact(
+        &self,
+        ctx: &mut C,
+        state: &mut State<C>,
+        position: f64,
+    ) -> Result<(), <C as Ctx>::Error> {
+        self.inner().interact(ctx, state, position)
+    }
+
+    fn prepare_items(&self, state: &State<C>) -> Items {
+        self.inner().prepare_items(state)
     }
 }

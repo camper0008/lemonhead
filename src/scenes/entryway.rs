@@ -50,11 +50,11 @@ impl From<InteractableId> for Interactables {
 }
 
 impl Entryway {
-    fn draw_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
-        ctx.draw_ground()?;
-        ctx.draw_wallpaper(&Tile::StripeWallpaper)?;
+    fn draw_house<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
+        ctx.enqueue_ground();
+        ctx.enqueue_wallpaper(&Tile::StripeWallpaper);
 
-        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen)?;
+        ctx.enqueue_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
 
         let picture_tile = if state.child_room.child_stabs > 0 {
             Tile::LemonDayPicture
@@ -62,12 +62,12 @@ impl Entryway {
             Tile::TreeDayPicture
         };
 
-        ctx.draw_sprite((7.0, GROUND_LEVEL), (1.0, 1.0), &picture_tile)?;
+        ctx.enqueue_sprite((7.0, GROUND_LEVEL), (1.0, 1.0), &picture_tile);
 
-        ctx.draw_sprite((2.0, GROUND_LEVEL), (1.0, 1.0), &Tile::HousePicture)?;
+        ctx.enqueue_sprite((2.0, GROUND_LEVEL), (1.0, 1.0), &Tile::HousePicture);
 
         if state.murder_living_room.dad_dead {
-            ctx.draw_sprite((2.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterCenter)?;
+            ctx.enqueue_sprite((2.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterCenter);
         }
 
         let kitchen_door = if state.entryway.all_coins_collected() {
@@ -76,7 +76,7 @@ impl Entryway {
             Tile::DoorClosed
         };
 
-        ctx.draw_sprite((8.0, GROUND_LEVEL), (1.0, 1.0), &kitchen_door)?;
+        ctx.enqueue_sprite((8.0, GROUND_LEVEL), (1.0, 1.0), &kitchen_door);
 
         let child_door = if state.murder_living_room.dad_dead {
             Tile::DoorOpen
@@ -84,37 +84,34 @@ impl Entryway {
             Tile::DoorClosed
         };
 
-        ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &child_door)?;
+        ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &child_door);
 
         if !state.murder_living_room.dad_dead {
-            ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::ChildSticker)?;
+            ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::ChildSticker);
         }
 
         if state.murder_living_room.dad_dead && state.child_room.child_stabs == 0 {
-            ctx.draw_sprite((4.0, GROUND_LEVEL - 1.0), (1.0, 1.0), &Blood::Pentagram)?;
+            ctx.enqueue_sprite((4.0, GROUND_LEVEL - 1.0), (1.0, 1.0), &Blood::Pentagram);
         }
 
         if !state.entryway.coins[0] {
-            ctx.draw_item(&Tile::Coin, 3.0)?;
+            ctx.enqueue_item(&Tile::Coin, 3.0);
         }
         if !state.entryway.coins[1] {
-            ctx.draw_item(&Tile::Coin, 4.0)?;
+            ctx.enqueue_item(&Tile::Coin, 4.0);
         }
         if !state.entryway.coins[2] {
-            ctx.draw_item(&Tile::Coin, 5.0)?;
+            ctx.enqueue_item(&Tile::Coin, 5.0);
         }
         if !state.entryway.coins[3] {
-            ctx.draw_item(&Tile::Coin, 6.0)?;
+            ctx.enqueue_item(&Tile::Coin, 6.0);
         }
-
-        Ok(())
     }
 }
 
 impl<C: Ctx> Scene<C> for Entryway {
-    fn draw(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
-        self.draw_house(ctx, state)?;
-        Ok(())
+    fn draw(&self, ctx: &mut C, state: &State<C>) {
+        self.draw_house(ctx, state);
     }
 
     fn prepare_items(&self, state: &State<C>) -> Items {

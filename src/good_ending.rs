@@ -5,52 +5,46 @@ use crate::{
     sprite::Tile,
 };
 
-fn draw_layer_0<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
+fn draw_layer_0<C: Ctx>(ctx: &mut C) {
     let animation_timer = ctx.seconds_elapsed() % 10.0;
 
     for i in 0..2 {
         let position = -animation_timer + f64::from(i * 10);
-        ctx.draw_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer0)?;
+        ctx.enqueue_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer0);
     }
-
-    Ok(())
 }
 
-fn draw_layer_1<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
+fn draw_layer_1<C: Ctx>(ctx: &mut C) {
     let animation_timer = (ctx.seconds_elapsed() * 2.5) % 10.0;
 
     for i in 0..2 {
         let position = -animation_timer + f64::from(i * 10);
-        ctx.draw_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer1)?;
+        ctx.enqueue_sprite((position, 1.0), (10.0, 9.0), &Tile::CityLayer1);
     }
-
-    Ok(())
 }
 
-fn draw_layer_2<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
+fn draw_layer_2<C: Ctx>(ctx: &mut C) {
     let animation_timer = ctx.seconds_elapsed() * 5.0 % 16.0;
 
     for i in 0..3 {
         let position = -animation_timer + f64::from(i * 16);
-        ctx.draw_sprite((position, 1.0), (16.0, 8.0), &Tile::CityLayer2)?;
+        ctx.enqueue_sprite((position, 1.0), (16.0, 8.0), &Tile::CityLayer2);
     }
-
-    Ok(())
 }
 
 pub fn good_ending<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
     ctx.set_music(Music::Rich)?;
 
     loop {
-        ctx.pre_step()?;
+        ctx.setup()?;
         if ctx.key_down(Key::Quit) || ctx.key_down(Key::Interact) {
             break Ok(());
         }
-        ctx.fill_background(Rgb(255, 255, 255))?;
+        ctx.enqueue_background_fill(Rgb(255, 255, 255));
 
-        draw_layer_0(ctx)?;
-        draw_layer_1(ctx)?;
-        draw_layer_2(ctx)?;
+        draw_layer_0(ctx);
+        draw_layer_1(ctx);
+        draw_layer_2(ctx);
 
         let x_offset = (ctx.seconds_elapsed() % 1.0 * PI * 2.0).sin() * 0.125;
         let car = if ctx.seconds_elapsed() % 0.2 < 0.1 {
@@ -59,8 +53,8 @@ pub fn good_ending<C: Ctx>(ctx: &mut C) -> Result<(), C::Error> {
             Tile::LemonCar1
         };
 
-        ctx.draw_sprite((4.0 + x_offset, 8.0), (2.0, 1.0), &car)?;
-        ctx.draw_sprite((0.0, 9.0), (10.0, 1.0), &Tile::Ground)?;
-        ctx.post_step()?;
+        ctx.enqueue_sprite((4.0 + x_offset, 8.0), (2.0, 1.0), &car);
+        ctx.enqueue_sprite((0.0, 9.0), (10.0, 1.0), &Tile::Ground);
+        ctx.finish()?;
     }
 }

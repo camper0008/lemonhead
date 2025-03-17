@@ -36,20 +36,18 @@ impl From<InteractableId> for Interactables {
 }
 
 impl ChildRoom {
-    fn draw_house<C: Ctx>(&self, ctx: &mut C) -> Result<(), C::Error> {
-        ctx.draw_ground()?;
-        ctx.draw_wallpaper(&Tile::DotWallpaper)?;
-        ctx.draw_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen)?;
+    fn draw_house<C: Ctx>(&self, ctx: &mut C) {
+        ctx.enqueue_ground();
+        ctx.enqueue_wallpaper(&Tile::DotWallpaper);
+        ctx.enqueue_sprite((1.0, GROUND_LEVEL), (1.0, 1.0), &Tile::DoorOpen);
 
-        ctx.draw_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::ChildPoster)?;
-        ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Computer)?;
-        ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::OfficeChair)?;
-        ctx.draw_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bed)?;
-
-        Ok(())
+        ctx.enqueue_sprite((3.0, GROUND_LEVEL), (1.0, 1.0), &Tile::ChildPoster);
+        ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Computer);
+        ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Tile::OfficeChair);
+        ctx.enqueue_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Tile::Bed);
     }
 
-    fn draw_child<C: Ctx>(&self, ctx: &mut C, state: &State<C>) -> Result<(), C::Error> {
+    fn draw_child<C: Ctx>(&self, ctx: &mut C, state: &State<C>) {
         let child = if state.child_room.child_dead() {
             Actor::Child(Npc::Dead)
         } else if ctx.seconds_elapsed() % 1.0 < 0.5 {
@@ -58,27 +56,24 @@ impl ChildRoom {
             Actor::Child(Npc::IdleAlt)
         };
 
-        ctx.draw_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &child)?;
+        ctx.enqueue_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &child);
 
         if state.child_room.child_stabs > 0 {
-            ctx.draw_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterCenter)?;
+            ctx.enqueue_sprite((5.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterCenter);
         }
         if state.child_room.child_stabs > 1 {
-            ctx.draw_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterRight)?;
+            ctx.enqueue_sprite((4.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterRight);
         }
         if state.child_room.child_stabs > 2 {
-            ctx.draw_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterLeft)?;
+            ctx.enqueue_sprite((6.0, GROUND_LEVEL), (1.0, 1.0), &Blood::SplatterLeft);
         }
-
-        Ok(())
     }
 }
 
 impl<C: Ctx> Scene<C> for ChildRoom {
-    fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) -> Result<(), C::Error> {
-        self.draw_house(ctx)?;
-        self.draw_child(ctx, state)?;
-        Ok(())
+    fn draw(&self, ctx: &mut C, state: &crate::state::State<C>) {
+        self.draw_house(ctx);
+        self.draw_child(ctx, state);
     }
 
     fn prepare_items(&self, state: &State<C>) -> Items {

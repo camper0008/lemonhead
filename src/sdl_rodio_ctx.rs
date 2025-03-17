@@ -208,32 +208,25 @@ impl SdlRodioCtx {
 impl Ctx for SdlRodioCtx {
     type Error = String;
 
-    fn fill_background(&mut self, color: crate::ctx::Rgb) -> Result<(), Self::Error> {
+    fn enqueue_background_fill(&mut self, color: crate::ctx::Rgb) {
         self.render_queue
             .push_back(QueueItem::FillBackground(color));
-        Ok(())
     }
 
-    fn fill_screen_rect(
+    fn enqueue_screen_rect(
         &mut self,
         color: crate::ctx::Rgb,
         position: (f64, f64),
         size: (f64, f64),
-    ) -> Result<(), Self::Error> {
+    ) {
         self.render_queue.push_back(QueueItem::DrawRect {
             color,
             position,
             size,
         });
-        Ok(())
     }
 
-    fn draw_sprite(
-        &mut self,
-        position: (f64, f64),
-        size: (f64, f64),
-        sprite: &impl Sprite,
-    ) -> Result<(), Self::Error> {
+    fn enqueue_sprite(&mut self, position: (f64, f64), size: (f64, f64), sprite: &impl Sprite) {
         let position = self.to_screen_position(position);
         let size = self.to_screen_scale(size);
         self.render_queue.push_back(QueueItem::Sprite {
@@ -243,14 +236,13 @@ impl Ctx for SdlRodioCtx {
             position,
             size,
         });
-        Ok(())
     }
 
     fn key_down(&self, key: crate::ctx::Key) -> bool {
         self.keys_down.contains(&key)
     }
 
-    fn pre_step(&mut self) -> Result<(), String> {
+    fn setup(&mut self) -> Result<(), Self::Error> {
         self.keys_down.remove(&Key::Interact);
         use crate::ctx::Key;
         for event in self.sdl.event_pump()?.poll_iter() {
@@ -290,8 +282,8 @@ impl Ctx for SdlRodioCtx {
         Ok(())
     }
 
-    fn post_step(&mut self) -> Result<(), Self::Error> {
-        self.fill_border()?;
+    fn finish(&mut self) -> Result<(), Self::Error> {
+        self.enqueue_border();
         self.draw_queue()?;
         self.canvas.present();
         std::thread::sleep(std::time::Duration::new(0, 1_000_000_000u32 / 60));
